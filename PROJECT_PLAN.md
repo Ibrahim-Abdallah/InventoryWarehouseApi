@@ -314,10 +314,17 @@ Implement the foundational master data required by the inventory system.
 * Sorting
 * Unit tests
 * Integration tests
+* EF Core SQL Server persistence and initial catalog migration
+* FluentValidation and centralized Problem Details error mapping
+* Case-insensitive normalized SKU/code uniqueness with database safeguards
 
 ### Definition of Done
 
 Products and warehouses can be reliably managed through documented REST endpoints.
+
+### Status
+
+Completed. Product and Warehouse master-data CRUD, validation, uniqueness, database pagination/search/filtering/sorting, SQL Server persistence, migration, and automated unit/integration coverage are implemented.
 
 ---
 
@@ -653,7 +660,7 @@ Throughout development:
 | Phase                                         | Status      |
 | --------------------------------------------- | ----------- |
 | 01 — Project Foundation                       | Completed   |
-| 02 — Products & Warehouses                    | Not Started |
+| 02 — Products & Warehouses                    | Completed   |
 | 03 — Warehouse Locations & Inventory Balances | Not Started |
 | 04 — Stock Movement Engine                    | Not Started |
 | 05 — Stock Adjustments                        | Not Started |
@@ -669,4 +676,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 02 — Products & Warehouses (Not Started)**
+**Phase 03 — Warehouse Locations & Inventory Balances (Not Started)**
