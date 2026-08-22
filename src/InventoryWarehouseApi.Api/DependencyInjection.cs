@@ -8,6 +8,7 @@ public static class DependencyInjection
         services.AddOpenApi();
         services.AddHealthChecks();
         services.AddProblemDetails();
+        services.AddExceptionHandler<ApiExceptionHandler>();
 
         return services;
     }

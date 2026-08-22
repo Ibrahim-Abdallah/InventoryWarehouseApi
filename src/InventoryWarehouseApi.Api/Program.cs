@@ -1,4 +1,6 @@
 using InventoryWarehouseApi.Api;
+using InventoryWarehouseApi.Application;
+using InventoryWarehouseApi.Infrastructure;
 using Scalar.AspNetCore;
 using Serilog;
 
@@ -8,11 +10,13 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
 builder.Services.AddApiServices();
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 WebApplication app = builder.Build();
 
-app.UseExceptionHandler();
 app.UseSerilogRequestLogging();
+app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {
