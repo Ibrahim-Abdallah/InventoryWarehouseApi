@@ -15,6 +15,8 @@ internal sealed class WarehouseLocationRepository(InventoryWarehouseDbContext db
         dbContext.WarehouseLocations.AnyAsync(x => x.WarehouseId == warehouseId && x.Code == code && (!excludingId.HasValue || x.Id != excludingId), ct);
     public Task<bool> HasInventoryAsync(Guid warehouseId, Guid id, CancellationToken ct) =>
         dbContext.InventoryBalances.AnyAsync(x => x.WarehouseId == warehouseId && x.WarehouseLocationId == id, ct);
+    public Task<bool> HasMovementsAsync(Guid warehouseId, Guid id, CancellationToken ct) =>
+        dbContext.StockMovements.AnyAsync(x => x.WarehouseId == warehouseId && x.WarehouseLocationId == id, ct);
     public async Task<PagedResult<WarehouseLocation>> ListAsync(Guid warehouseId, WarehouseLocationQuery q, CancellationToken ct)
     {
         IQueryable<WarehouseLocation> query = dbContext.WarehouseLocations.AsNoTracking().Where(x => x.WarehouseId == warehouseId);
@@ -41,5 +43,7 @@ internal sealed class WarehouseLocationRepository(InventoryWarehouseDbContext db
         { throw new ConflictException("A location with this code already exists in this warehouse."); }
         catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_InventoryBalances_WarehouseLocations", "FOREIGN KEY constraint failed"))
         { throw new ConflictException("The warehouse location cannot be deleted because it has inventory balances."); }
+        catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_StockMovements_WarehouseLocations"))
+        { throw new ConflictException("The warehouse location cannot be deleted because it has stock movement history."); }
     }
 }

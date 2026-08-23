@@ -12,6 +12,7 @@ internal sealed class ProductRepository(InventoryWarehouseDbContext dbContext) :
     public Task<bool> SkuExistsAsync(string sku, Guid? excludingId, CancellationToken ct) =>
         dbContext.Products.AnyAsync(x => x.Sku == sku && (!excludingId.HasValue || x.Id != excludingId), ct);
     public Task<bool> HasInventoryAsync(Guid id, CancellationToken ct) => dbContext.InventoryBalances.AnyAsync(x => x.ProductId == id, ct);
+    public Task<bool> HasMovementsAsync(Guid id, CancellationToken ct) => dbContext.StockMovements.AnyAsync(x => x.ProductId == id, ct);
     public async Task<PagedResult<Product>> ListAsync(ProductQuery q, CancellationToken ct)
     {
         IQueryable<Product> query = dbContext.Products.AsNoTracking();
@@ -42,5 +43,7 @@ internal sealed class ProductRepository(InventoryWarehouseDbContext dbContext) :
         { throw new ConflictException("A product with this SKU already exists."); }
         catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_InventoryBalances_Products", "FOREIGN KEY constraint failed"))
         { throw new ConflictException("The product cannot be deleted because it has inventory balances."); }
+        catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_StockMovements_Products"))
+        { throw new ConflictException("The product cannot be deleted because it has stock movement history."); }
     }
 }
