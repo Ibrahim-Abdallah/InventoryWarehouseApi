@@ -40,6 +40,8 @@ internal sealed class WarehouseService(IWarehouseRepository repository, IValidat
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
         Warehouse warehouse = await repository.GetAsync(id, true, cancellationToken) ?? throw new NotFoundException("Warehouse was not found.");
+        if (await repository.HasLocationsAsync(id, cancellationToken))
+            throw new ConflictException("The warehouse cannot be deleted because it has warehouse locations.");
         repository.Remove(warehouse);
         await repository.SaveChangesAsync(cancellationToken);
     }

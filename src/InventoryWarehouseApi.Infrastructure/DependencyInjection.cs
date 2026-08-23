@@ -1,5 +1,7 @@
 using InventoryWarehouseApi.Application.Products;
 using InventoryWarehouseApi.Application.Warehouses;
+using InventoryWarehouseApi.Application.WarehouseLocations;
+using InventoryWarehouseApi.Application.Inventory;
 using InventoryWarehouseApi.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,6 +18,8 @@ public static class DependencyInjection
         services.AddDbContext<InventoryWarehouseDbContext>(options => options.UseSqlServer(connectionString));
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IWarehouseRepository, WarehouseRepository>();
+        services.AddScoped<IWarehouseLocationRepository, WarehouseLocationRepository>();
+        services.AddScoped<IInventoryQueryRepository, InventoryQueryRepository>();
         return services;
     }
 }

@@ -11,6 +11,7 @@ internal sealed class WarehouseRepository(InventoryWarehouseDbContext dbContext)
         (tracking ? dbContext.Warehouses : dbContext.Warehouses.AsNoTracking()).SingleOrDefaultAsync(x => x.Id == id, ct);
     public Task<bool> CodeExistsAsync(string code, Guid? excludingId, CancellationToken ct) =>
         dbContext.Warehouses.AnyAsync(x => x.Code == code && (!excludingId.HasValue || x.Id != excludingId), ct);
+    public Task<bool> HasLocationsAsync(Guid id, CancellationToken ct) => dbContext.WarehouseLocations.AnyAsync(x => x.WarehouseId == id, ct);
     public async Task<PagedResult<Warehouse>> ListAsync(WarehouseQuery q, CancellationToken ct)
     {
         IQueryable<Warehouse> query = dbContext.Warehouses.AsNoTracking();
@@ -39,5 +40,7 @@ internal sealed class WarehouseRepository(InventoryWarehouseDbContext dbContext)
         try { await dbContext.SaveChangesAsync(ct); }
         catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "UX_Warehouses_Code", "Warehouses.Code"))
         { throw new ConflictException("A warehouse with this code already exists."); }
+        catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_WarehouseLocations_Warehouses", "FOREIGN KEY constraint failed"))
+        { throw new ConflictException("The warehouse cannot be deleted because it has warehouse locations."); }
     }
 }
