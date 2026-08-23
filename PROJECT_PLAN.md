@@ -617,7 +617,7 @@ Example:
 ```text
 phase/01-foundation
 phase/02-products-warehouses
-phase/03-inventory-balances
+phase/03-locations-inventory-balances
 ```
 
 For every phase:
@@ -629,9 +629,9 @@ For every phase:
 5. Review Git changes.
 6. Commit using a clear commit message.
 7. Push the branch.
-8. Merge into `main`.
+8. Merge into `master`.
 9. Delete the completed phase branch.
-10. Confirm that `main` is clean and up to date.
+10. Confirm that `master` is clean and up to date.
 
 ---
 
@@ -661,7 +661,7 @@ Throughout development:
 | --------------------------------------------- | ----------- |
 | 01 — Project Foundation                       | Completed   |
 | 02 — Products & Warehouses                    | Completed   |
-| 03 — Warehouse Locations & Inventory Balances | Not Started |
+| 03 — Warehouse Locations & Inventory Balances | Completed   |
 | 04 — Stock Movement Engine                    | Not Started |
 | 05 — Stock Adjustments                        | Not Started |
 | 06 — Warehouse Transfers                      | Not Started |
@@ -676,4 +676,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 03 — Warehouse Locations & Inventory Balances (Not Started)**
+**Phase 04 — Stock Movement Engine (Not Started)**

@@ -7,6 +7,7 @@ public interface IWarehouseRepository
 {
     Task<Warehouse?> GetAsync(Guid id, bool tracking, CancellationToken cancellationToken);
     Task<bool> CodeExistsAsync(string normalizedCode, Guid? excludingId, CancellationToken cancellationToken);
+    Task<bool> HasLocationsAsync(Guid id, CancellationToken cancellationToken);
     Task<PagedResult<Warehouse>> ListAsync(WarehouseQuery query, CancellationToken cancellationToken);
     Task AddAsync(Warehouse warehouse, CancellationToken cancellationToken);
     void Remove(Warehouse warehouse);

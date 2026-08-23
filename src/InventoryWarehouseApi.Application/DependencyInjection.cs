@@ -1,6 +1,8 @@
 using FluentValidation;
 using InventoryWarehouseApi.Application.Products;
 using InventoryWarehouseApi.Application.Warehouses;
+using InventoryWarehouseApi.Application.WarehouseLocations;
+using InventoryWarehouseApi.Application.Inventory;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryWarehouseApi.Application;
@@ -15,8 +17,14 @@ public static class DependencyInjection
         services.AddScoped<IValidator<CreateWarehouseRequest>, CreateWarehouseValidator>();
         services.AddScoped<IValidator<UpdateWarehouseRequest>, UpdateWarehouseValidator>();
         services.AddScoped<IValidator<WarehouseQuery>, WarehouseQueryValidator>();
+        services.AddScoped<IValidator<CreateWarehouseLocationRequest>, CreateWarehouseLocationValidator>();
+        services.AddScoped<IValidator<UpdateWarehouseLocationRequest>, UpdateWarehouseLocationValidator>();
+        services.AddScoped<IValidator<WarehouseLocationQuery>, WarehouseLocationQueryValidator>();
+        services.AddScoped<IValidator<LocationInventoryQuery>, LocationInventoryQueryValidator>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IWarehouseService, WarehouseService>();
+        services.AddScoped<IWarehouseLocationService, WarehouseLocationService>();
+        services.AddScoped<IInventoryQueryService, InventoryQueryService>();
         return services;
     }
 }

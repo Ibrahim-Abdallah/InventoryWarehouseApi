@@ -7,6 +7,8 @@ public sealed class InventoryWarehouseDbContext(DbContextOptions<InventoryWareho
 {
     public DbSet<Product> Products => Set<Product>();
     public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<WarehouseLocation> WarehouseLocations => Set<WarehouseLocation>();
+    public DbSet<InventoryBalance> InventoryBalances => Set<InventoryBalance>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InventoryWarehouseDbContext).Assembly);
