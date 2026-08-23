@@ -23,6 +23,25 @@ public sealed class InventoryBalance
     public decimal ReservedQuantity { get; private set; }
     public decimal AvailableQuantity => OnHandQuantity - ReservedQuantity;
 
+    public void Receive(decimal quantity)
+    {
+        EnsurePositive(quantity);
+        OnHandQuantity += quantity;
+    }
+
+    public void Issue(decimal quantity)
+    {
+        EnsurePositive(quantity);
+        if (quantity > AvailableQuantity)
+            throw new InvalidOperationException("Insufficient available stock.");
+        OnHandQuantity -= quantity;
+    }
+
+    private static void EnsurePositive(decimal quantity)
+    {
+        if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
+    }
+
     private void SetQuantities(decimal onHandQuantity, decimal reservedQuantity)
     {
         if (onHandQuantity < 0) throw new ArgumentOutOfRangeException(nameof(onHandQuantity), "On-hand quantity cannot be negative.");

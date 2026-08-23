@@ -46,6 +46,8 @@ internal sealed class ProductService(IProductRepository repository, IValidator<C
         Product product = await repository.GetAsync(id, true, cancellationToken) ?? throw new NotFoundException("Product was not found.");
         if (await repository.HasInventoryAsync(id, cancellationToken))
             throw new ConflictException("The product cannot be deleted because it has inventory balances.");
+        if (await repository.HasMovementsAsync(id, cancellationToken))
+            throw new ConflictException("The product cannot be deleted because it has stock movement history.");
         repository.Remove(product);
         await repository.SaveChangesAsync(cancellationToken);
     }

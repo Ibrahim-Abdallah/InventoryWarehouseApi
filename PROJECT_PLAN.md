@@ -352,6 +352,10 @@ Introduce warehouse storage locations and inventory state.
 
 The system can represent where inventory exists and its current quantity state.
 
+### Status
+
+Completed. Warehouse locations, location-level inventory balances, derived availability, aggregate inventory queries, relational safeguards, dependency-safe deletion, and automated coverage are implemented.
+
 ---
 
 ## Phase 04 — Stock Movement Engine
@@ -377,6 +381,10 @@ Create the central inventory transaction engine.
 ### Definition of Done
 
 Every inventory quantity change can be reliably executed and audited.
+
+### Status
+
+Completed. Stock In and Stock Out, immutable movement history, available-stock protection, atomic serializable balance-and-ledger persistence, optional external references, database safeguards, paged history, delete integrity, and automated unit/integration coverage are implemented.
 
 ---
 
@@ -662,7 +670,7 @@ Throughout development:
 | 01 — Project Foundation                       | Completed   |
 | 02 — Products & Warehouses                    | Completed   |
 | 03 — Warehouse Locations & Inventory Balances | Completed   |
-| 04 — Stock Movement Engine                    | Not Started |
+| 04 — Stock Movement Engine                    | Completed   |
 | 05 — Stock Adjustments                        | Not Started |
 | 06 — Warehouse Transfers                      | Not Started |
 | 07 — Inventory Reservations                   | Not Started |
@@ -676,4 +684,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 04 — Stock Movement Engine (Not Started)**
+**Phase 05 — Stock Adjustments (Not Started)**

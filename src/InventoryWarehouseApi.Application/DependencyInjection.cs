@@ -21,10 +21,13 @@ public static class DependencyInjection
         services.AddScoped<IValidator<UpdateWarehouseLocationRequest>, UpdateWarehouseLocationValidator>();
         services.AddScoped<IValidator<WarehouseLocationQuery>, WarehouseLocationQueryValidator>();
         services.AddScoped<IValidator<LocationInventoryQuery>, LocationInventoryQueryValidator>();
+        services.AddScoped<IValidator<StockMovementRequest>, StockMovementRequestValidator>();
+        services.AddScoped<IValidator<StockMovementHistoryQuery>, StockMovementHistoryQueryValidator>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IWarehouseService, WarehouseService>();
         services.AddScoped<IWarehouseLocationService, WarehouseLocationService>();
         services.AddScoped<IInventoryQueryService, InventoryQueryService>();
+        services.AddScoped<IStockMovementService, StockMovementService>();
         return services;
     }
 }
