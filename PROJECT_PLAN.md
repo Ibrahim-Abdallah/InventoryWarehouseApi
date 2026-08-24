@@ -410,6 +410,10 @@ Support controlled manual inventory corrections.
 
 Authorized inventory corrections are safely recorded and auditable.
 
+### Status
+
+Completed. Controlled Increase and Decrease corrections, immutable adjustment audit records, caller-supplied audit identity metadata, available-stock protection, linked stock movements, atomic serializable persistence, paged history, relational safeguards, and automated unit/integration coverage are implemented. Phase 09 will replace caller-supplied identity with authenticated identity integration.
+
 ---
 
 ## Phase 06 — Warehouse Transfers
@@ -671,7 +675,7 @@ Throughout development:
 | 02 — Products & Warehouses                    | Completed   |
 | 03 — Warehouse Locations & Inventory Balances | Completed   |
 | 04 — Stock Movement Engine                    | Completed   |
-| 05 — Stock Adjustments                        | Not Started |
+| 05 — Stock Adjustments                        | Completed   |
 | 06 — Warehouse Transfers                      | Not Started |
 | 07 — Inventory Reservations                   | Not Started |
 | 08 — Low Stock Monitoring & Background Jobs   | Not Started |
@@ -684,4 +688,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 05 — Stock Adjustments (Not Started)**
+**Phase 06 — Warehouse Transfers (Not Started)**

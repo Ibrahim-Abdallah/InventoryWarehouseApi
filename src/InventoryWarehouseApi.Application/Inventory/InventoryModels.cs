@@ -21,3 +21,13 @@ public sealed record StockMovementResponse(Guid Id, Guid ProductId, Guid Warehou
     Guid WarehouseLocationId, StockMovementType MovementType, decimal Quantity,
     string? ReferenceType, string? ReferenceId, DateTimeOffset OccurredAtUtc);
 public sealed record StockMovementHistoryQuery(int PageNumber = 1, int PageSize = 20);
+
+public sealed record InventoryAdjustmentRequest(decimal Quantity, string Reason, string AdjustedBy);
+public sealed record InventoryAdjustmentOperationResponse(Guid AdjustmentId, InventoryAdjustmentType AdjustmentType,
+    Guid ProductId, Guid WarehouseId, Guid WarehouseLocationId, decimal Quantity, string Reason,
+    string AdjustedBy, Guid StockMovementId, StockMovementType StockMovementType, DateTimeOffset AdjustedAtUtc,
+    decimal OnHandQuantity, decimal ReservedQuantity, decimal AvailableQuantity);
+public sealed record InventoryAdjustmentResponse(Guid Id, Guid ProductId, Guid WarehouseId,
+    Guid WarehouseLocationId, InventoryAdjustmentType AdjustmentType, decimal Quantity, string Reason,
+    string AdjustedBy, Guid StockMovementId, DateTimeOffset AdjustedAtUtc);
+public sealed record InventoryAdjustmentHistoryQuery(int PageNumber = 1, int PageSize = 20);

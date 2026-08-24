@@ -31,3 +31,24 @@ public sealed class StockMovementHistoryQueryValidator : AbstractValidator<Stock
         RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
     }
 }
+
+public sealed class InventoryAdjustmentRequestValidator : AbstractValidator<InventoryAdjustmentRequest>
+{
+    public InventoryAdjustmentRequestValidator()
+    {
+        RuleFor(x => x.Quantity).GreaterThan(0).PrecisionScale(18, 3, false);
+        RuleFor(x => x.Reason).NotEmpty().Must(x => x is null || x.Trim().Length <= InventoryAdjustment.ReasonMaxLength)
+            .WithMessage($"Reason cannot exceed {InventoryAdjustment.ReasonMaxLength} characters after trimming.");
+        RuleFor(x => x.AdjustedBy).NotEmpty().Must(x => x is null || x.Trim().Length <= InventoryAdjustment.AdjustedByMaxLength)
+            .WithMessage($"AdjustedBy cannot exceed {InventoryAdjustment.AdjustedByMaxLength} characters after trimming.");
+    }
+}
+
+public sealed class InventoryAdjustmentHistoryQueryValidator : AbstractValidator<InventoryAdjustmentHistoryQuery>
+{
+    public InventoryAdjustmentHistoryQueryValidator()
+    {
+        RuleFor(x => x.PageNumber).GreaterThan(0);
+        RuleFor(x => x.PageSize).InclusiveBetween(1, 100);
+    }
+}
