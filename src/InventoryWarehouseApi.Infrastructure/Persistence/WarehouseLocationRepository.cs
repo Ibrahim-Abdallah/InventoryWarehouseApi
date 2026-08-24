@@ -17,6 +17,10 @@ internal sealed class WarehouseLocationRepository(InventoryWarehouseDbContext db
         dbContext.InventoryBalances.AnyAsync(x => x.WarehouseId == warehouseId && x.WarehouseLocationId == id, ct);
     public Task<bool> HasMovementsAsync(Guid warehouseId, Guid id, CancellationToken ct) =>
         dbContext.StockMovements.AnyAsync(x => x.WarehouseId == warehouseId && x.WarehouseLocationId == id, ct);
+    public Task<bool> HasTransfersAsync(Guid warehouseId, Guid id, CancellationToken ct) =>
+        dbContext.WarehouseTransfers.AnyAsync(x =>
+            (x.SourceWarehouseId == warehouseId && x.SourceWarehouseLocationId == id) ||
+            (x.DestinationWarehouseId == warehouseId && x.DestinationWarehouseLocationId == id), ct);
     public async Task<PagedResult<WarehouseLocation>> ListAsync(Guid warehouseId, WarehouseLocationQuery q, CancellationToken ct)
     {
         IQueryable<WarehouseLocation> query = dbContext.WarehouseLocations.AsNoTracking().Where(x => x.WarehouseId == warehouseId);
@@ -45,5 +49,7 @@ internal sealed class WarehouseLocationRepository(InventoryWarehouseDbContext db
         { throw new ConflictException("The warehouse location cannot be deleted because it has inventory balances."); }
         catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_StockMovements_WarehouseLocations"))
         { throw new ConflictException("The warehouse location cannot be deleted because it has stock movement history."); }
+        catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_WarehouseTransfers_WarehouseLocations"))
+        { throw new ConflictException("The warehouse location cannot be deleted because it is referenced by warehouse transfers."); }
     }
 }

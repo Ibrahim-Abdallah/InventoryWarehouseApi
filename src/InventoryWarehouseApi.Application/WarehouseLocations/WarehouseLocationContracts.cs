@@ -10,6 +10,7 @@ public interface IWarehouseLocationRepository
     Task<bool> CodeExistsAsync(Guid warehouseId, string code, Guid? excludingId, CancellationToken ct);
     Task<bool> HasInventoryAsync(Guid warehouseId, Guid id, CancellationToken ct);
     Task<bool> HasMovementsAsync(Guid warehouseId, Guid id, CancellationToken ct);
+    Task<bool> HasTransfersAsync(Guid warehouseId, Guid id, CancellationToken ct);
     Task<PagedResult<WarehouseLocation>> ListAsync(Guid warehouseId, WarehouseLocationQuery query, CancellationToken ct);
     Task AddAsync(WarehouseLocation location, CancellationToken ct);
     void Remove(WarehouseLocation location);

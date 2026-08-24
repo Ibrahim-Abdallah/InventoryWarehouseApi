@@ -11,7 +11,7 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         builder.ToTable("StockMovements", table =>
         {
             table.HasCheckConstraint("CK_StockMovements_Quantity_Positive", "CAST([Quantity] AS decimal(18,3)) > 0");
-            table.HasCheckConstraint("CK_StockMovements_MovementType_Supported", "[MovementType] IN (1, 2, 3, 4)");
+            table.HasCheckConstraint("CK_StockMovements_MovementType_Supported", "[MovementType] IN (1, 2, 3, 4, 5, 6)");
         });
         builder.HasKey(x => x.Id);
         builder.Property(x => x.MovementType).HasConversion<int>();

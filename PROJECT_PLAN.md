@@ -440,6 +440,10 @@ Support safe movement of inventory between warehouses.
 
 Inventory can be transferred without creating, losing, or duplicating stock.
 
+### Status
+
+Completed. Pending-to-Completed multi-product transfers, exact source/destination position validation, creation and completion availability checks, Serializable atomic completion, paired TransferOut/TransferIn ledger entries, stock conservation, deterministic transfer history, master-data deletion protection, relational safeguards, and automated unit/integration coverage are implemented. Pending transfers do not reserve inventory; reservations remain Phase 07 scope.
+
 ---
 
 ## Phase 07 — Inventory Reservations
@@ -676,7 +680,7 @@ Throughout development:
 | 03 — Warehouse Locations & Inventory Balances | Completed   |
 | 04 — Stock Movement Engine                    | Completed   |
 | 05 — Stock Adjustments                        | Completed   |
-| 06 — Warehouse Transfers                      | Not Started |
+| 06 — Warehouse Transfers                      | Completed   |
 | 07 — Inventory Reservations                   | Not Started |
 | 08 — Low Stock Monitoring & Background Jobs   | Not Started |
 | 09 — Authentication & Authorization           | Not Started |
@@ -688,4 +692,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 06 — Warehouse Transfers (Not Started)**
+**Phase 07 — Inventory Reservations (Not Started)**
