@@ -48,6 +48,7 @@ internal sealed class WarehouseLocationService(IWarehouseLocationRepository repo
         WarehouseLocation location = await repository.GetAsync(warehouseId, id, true, ct) ?? throw new NotFoundException("Warehouse location was not found.");
         if (await repository.HasInventoryAsync(warehouseId, id, ct)) throw new ConflictException("The warehouse location cannot be deleted because it has inventory balances.");
         if (await repository.HasMovementsAsync(warehouseId, id, ct)) throw new ConflictException("The warehouse location cannot be deleted because it has stock movement history.");
+        if (await repository.HasTransfersAsync(warehouseId, id, ct)) throw new ConflictException("The warehouse location cannot be deleted because it is referenced by warehouse transfers.");
         repository.Remove(location);
         await repository.SaveChangesAsync(ct);
     }

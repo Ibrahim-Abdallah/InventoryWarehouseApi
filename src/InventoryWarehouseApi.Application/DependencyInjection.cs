@@ -3,6 +3,7 @@ using InventoryWarehouseApi.Application.Products;
 using InventoryWarehouseApi.Application.Warehouses;
 using InventoryWarehouseApi.Application.WarehouseLocations;
 using InventoryWarehouseApi.Application.Inventory;
+using InventoryWarehouseApi.Application.WarehouseTransfers;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryWarehouseApi.Application;
@@ -25,12 +26,15 @@ public static class DependencyInjection
         services.AddScoped<IValidator<StockMovementHistoryQuery>, StockMovementHistoryQueryValidator>();
         services.AddScoped<IValidator<InventoryAdjustmentRequest>, InventoryAdjustmentRequestValidator>();
         services.AddScoped<IValidator<InventoryAdjustmentHistoryQuery>, InventoryAdjustmentHistoryQueryValidator>();
+        services.AddScoped<IValidator<CreateWarehouseTransferRequest>, CreateWarehouseTransferValidator>();
+        services.AddScoped<IValidator<WarehouseTransferHistoryQuery>, WarehouseTransferHistoryQueryValidator>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IWarehouseService, WarehouseService>();
         services.AddScoped<IWarehouseLocationService, WarehouseLocationService>();
         services.AddScoped<IInventoryQueryService, InventoryQueryService>();
         services.AddScoped<IStockMovementService, StockMovementService>();
         services.AddScoped<IInventoryAdjustmentService, InventoryAdjustmentService>();
+        services.AddScoped<IWarehouseTransferService, WarehouseTransferService>();
         return services;
     }
 }
