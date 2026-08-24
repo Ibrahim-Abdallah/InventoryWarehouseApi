@@ -12,11 +12,18 @@ public sealed class StockMovement
     public StockMovement(Guid productId, Guid warehouseId, Guid warehouseLocationId,
         StockMovementType movementType, decimal quantity, string? referenceType,
         string? referenceId, DateTimeOffset occurredAtUtc)
+        : this(Guid.NewGuid(), productId, warehouseId, warehouseLocationId, movementType, quantity,
+            referenceType, referenceId, occurredAtUtc) { }
+
+    public StockMovement(Guid id, Guid productId, Guid warehouseId, Guid warehouseLocationId,
+        StockMovementType movementType, decimal quantity, string? referenceType,
+        string? referenceId, DateTimeOffset occurredAtUtc)
     {
+        if (id == Guid.Empty) throw new ArgumentException("Stock movement ID is required.", nameof(id));
         if (productId == Guid.Empty) throw new ArgumentException("Product is required.", nameof(productId));
         if (warehouseId == Guid.Empty) throw new ArgumentException("Warehouse is required.", nameof(warehouseId));
         if (warehouseLocationId == Guid.Empty) throw new ArgumentException("Warehouse location is required.", nameof(warehouseLocationId));
-        if (movementType is not StockMovementType.StockIn and not StockMovementType.StockOut)
+        if (!Enum.IsDefined(movementType))
             throw new ArgumentOutOfRangeException(nameof(movementType), "Movement type is not supported.");
         if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");
 
@@ -29,7 +36,7 @@ public sealed class StockMovement
         if (referenceId?.Length > ReferenceIdMaxLength)
             throw new ArgumentException($"Reference ID cannot exceed {ReferenceIdMaxLength} characters.", nameof(referenceId));
 
-        Id = Guid.NewGuid();
+        Id = id;
         ProductId = productId;
         WarehouseId = warehouseId;
         WarehouseLocationId = warehouseLocationId;
@@ -37,7 +44,7 @@ public sealed class StockMovement
         Quantity = quantity;
         ReferenceType = referenceType;
         ReferenceId = referenceId;
-        OccurredAtUtc = occurredAtUtc;
+        OccurredAtUtc = occurredAtUtc.ToUniversalTime();
     }
 
     public Guid Id { get; private set; }

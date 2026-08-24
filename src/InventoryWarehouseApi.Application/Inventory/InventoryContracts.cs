@@ -39,3 +39,25 @@ public interface IStockMovementService
     Task<StockMovementOperationResponse> StockOutAsync(Guid productId, Guid warehouseId, Guid locationId, StockMovementRequest request, CancellationToken ct);
     Task<PagedResult<StockMovementResponse>> ListAsync(Guid productId, Guid warehouseId, Guid locationId, StockMovementHistoryQuery query, CancellationToken ct);
 }
+
+public interface IInventoryAdjustmentRepository
+{
+    Task<bool> ProductExistsAsync(Guid id, CancellationToken ct);
+    Task<bool> WarehouseExistsAsync(Guid id, CancellationToken ct);
+    Task<bool> LocationExistsAsync(Guid warehouseId, Guid id, CancellationToken ct);
+    Task<(InventoryAdjustment Adjustment, StockMovement Movement, InventoryBalance Balance)> ExecuteAsync(
+        Guid productId, Guid warehouseId, Guid locationId, InventoryAdjustmentType adjustmentType,
+        decimal quantity, string reason, string adjustedBy, DateTimeOffset adjustedAtUtc, CancellationToken ct);
+    Task<PagedResult<InventoryAdjustment>> ListAsync(Guid productId, Guid warehouseId, Guid locationId,
+        InventoryAdjustmentHistoryQuery query, CancellationToken ct);
+}
+
+public interface IInventoryAdjustmentService
+{
+    Task<InventoryAdjustmentOperationResponse> IncreaseAsync(Guid productId, Guid warehouseId, Guid locationId,
+        InventoryAdjustmentRequest request, CancellationToken ct);
+    Task<InventoryAdjustmentOperationResponse> DecreaseAsync(Guid productId, Guid warehouseId, Guid locationId,
+        InventoryAdjustmentRequest request, CancellationToken ct);
+    Task<PagedResult<InventoryAdjustmentResponse>> ListAsync(Guid productId, Guid warehouseId, Guid locationId,
+        InventoryAdjustmentHistoryQuery query, CancellationToken ct);
+}
