@@ -1,0 +1,3 @@
+namespace InventoryWarehouseApi.Api.Authentication;
+public sealed class JwtOptions { public const string SectionName="Authentication:Jwt"; public string Issuer{get;set;}="";public string Audience{get;set;}="";public string SigningKey{get;set;}="";public int AccessTokenMinutes{get;set;}=15;public int RefreshTokenDays{get;set;}=7; }
+public sealed class DevelopmentAdminOptions { public const string SectionName="Authentication:DevelopmentAdmin";public bool Enabled{get;set;}public string Email{get;set;}="admin@inventory.local";public string DisplayName{get;set;}="Development Admin";public string Password{get;set;}="";}

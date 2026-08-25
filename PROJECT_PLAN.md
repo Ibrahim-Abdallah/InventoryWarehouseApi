@@ -502,6 +502,8 @@ Completed. Exact product/warehouse/location thresholds, `AvailableQuantity`-base
 
 ## Phase 09 — Authentication & Authorization
 
+**Status: Completed.** Custom users, secure framework password hashing, JWT access tokens, rotating hashed refresh tokens, four roles, permission policies, protected endpoints, Admin user management, authenticated adjustment audit identity, and automated coverage are implemented.
+
 ### Objectives
 
 Secure inventory operations.
@@ -691,7 +693,7 @@ Throughout development:
 | 06 — Warehouse Transfers                      | Completed   |
 | 07 — Inventory Reservations                   | Completed   |
 | 08 — Low Stock Monitoring & Background Jobs   | Completed   |
-| 09 — Authentication & Authorization           | Not Started |
+| 09 — Authentication & Authorization           | Completed   |
 | 10 — Inventory Queries & Dapper Reporting     | Not Started |
 | 11 — Testing & Reliability                    | Not Started |
 | 12 — Portfolio Polish & Documentation         | Not Started |
@@ -700,4 +702,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 09 — Authentication & Authorization (Not Started)**
+**Phase 10 — Inventory Queries & Dapper Reporting (Not Started)**

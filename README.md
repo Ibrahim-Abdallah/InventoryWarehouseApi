@@ -1,6 +1,6 @@
 # InventoryWarehouseApi
 
-A production-style ASP.NET Core Web API portfolio project for inventory and warehouse management. Phase 07 — Inventory Reservations is complete.
+A production-style ASP.NET Core Web API portfolio project for inventory and warehouse management. Phase 09 — Authentication & Authorization is complete.
 
 ## Implemented capabilities
 
@@ -15,7 +15,7 @@ A production-style ASP.NET Core Web API portfolio project for inventory and ware
 - Serializable, atomic InventoryBalance update and StockMovement insertion
 - Optional, normalized external reference pairs and newest-first paged movement history
 - Controlled Increase and Decrease corrections with immutable adjustment audit history
-- Required, normalized Reason and caller-supplied AdjustedBy audit metadata
+- Required, normalized Reason with AdjustedBy derived from the authenticated user's canonical email
 - One linked AdjustmentIncrease or AdjustmentDecrease movement for every successful correction
 - Serializable, atomic balance, adjustment, and ledger persistence
 - Pending-to-Completed warehouse transfers between exact inventory positions, including same-warehouse/different-location moves
@@ -27,7 +27,9 @@ A production-style ASP.NET Core Web API portfolio project for inventory and ware
 - Database-backed pagination, SKU/code and name search, active-state filtering, and controlled sorting
 - FluentValidation request and query validation
 - Problem Details responses for validation (400), missing resources (404), conflicts (409), and unexpected errors (500)
-- EF Core 10 with SQL Server and migrations through `AddInventoryReservations`
+- Custom users, standard ASP.NET Core password hashing, JWT Bearer access tokens, and rotating SHA-256-hashed refresh tokens
+- Secure-by-default role and permission policies with Admin-only user management
+- EF Core 10 with SQL Server and migrations through `AddAuthenticationAuthorization`
 - ASP.NET Core OpenAPI and Scalar API Reference
 - Serilog request and structured console logging
 - Unit tests and HTTP-pipeline integration tests using isolated SQLite in-memory databases
@@ -92,7 +94,7 @@ GET  /api/inventory-reservations
 
 Stock command bodies contain a positive `quantity` and may include `referenceType` and `referenceId`; reference fields must be supplied together. Movement history uses `pageNumber` and `pageSize` (maximum 100), is scoped to the exact product/warehouse/location position, and returns newest records first.
 
-Adjustment command bodies require a positive `quantity`, a `reason`, and `adjustedBy`. Increase creates a zero-reserved balance when none exists. Decrease is limited by `AvailableQuantity`, preserving reserved inventory, and returns 409 without writes when unavailable. Every successful adjustment creates one immutable audit record and one linked movement in the existing ledger. Adjustment history is exact-position scoped, newest first, and paged. Until Phase 09 adds authentication, `adjustedBy` is audit metadata supplied by the caller and is not an authenticated identity.
+Adjustment command bodies require only a positive `quantity` and `reason`. `AdjustedBy` is always the authenticated user's canonical email; a caller-supplied JSON field is ignored and never trusted. Increase creates a zero-reserved balance when none exists. Decrease is limited by `AvailableQuantity`, preserving reserved inventory, and returns 409 without writes when unavailable. Every successful adjustment creates one immutable audit record and one linked movement.
 
 Warehouse transfers move up to 100 distinct products from one exact warehouse/location position to another. Same-warehouse transfers are supported when the locations differ. Creation validates current source availability and persists a `Pending` document, but it does not reserve stock, change balances, or create movements. Completion revalidates current `AvailableQuantity` inside one Serializable transaction, issues only unreserved source stock, receives it at the destination, and records paired `TransferOut`/`TransferIn` movements with one shared timestamp and transfer reference. Any failing item rolls back every balance, movement, link, and status change, preserving total on-hand stock. Transfer detail and deterministic newest-first paged history are available through the transfer endpoints. Cancellation, in-transit states, and partial completion are not part of this lifecycle.
 
@@ -124,6 +126,16 @@ dotnet run --project src/InventoryWarehouseApi.Api
 
 In Development, Scalar is available at `/scalar/v1`, OpenAPI at `/openapi/v1.json`, and the health endpoint at `GET /health`.
 
+## Authentication and authorization
+
+The API is secure by default. `POST /api/auth/login`, `/api/auth/refresh`, `/api/auth/logout`, Development OpenAPI/Scalar, and `/health` are anonymous; business endpoints require a Bearer access token. Access tokens use HMAC-SHA256, default to 15 minutes, and contain `sub`, email, display name, role, `jti`, and permission claims. Refresh tokens default to seven days, rotate atomically, and only their SHA-256 hashes are persisted. Logout is idempotent and revokes the supplied refresh token.
+
+Roles map to permissions as follows: Admin has all permissions; InventoryManager has catalog/inventory operations, adjustments, and low-stock management; WarehouseOperator has catalog read, inventory read, and inventory operations; Viewer has catalog and inventory read only. User creation, listing, role changes, and activation are Admin-only. Deactivation and role changes revoke active refresh tokens; existing access tokens remain valid until their short expiry. The last active Admin cannot be deactivated or demoted.
+
+Authenticate by posting `{ "email": "...", "password": "..." }` to `/api/auth/login`, rotate with `{ "refreshToken": "..." }` at `/api/auth/refresh`, and revoke at `/api/auth/logout`. In Scalar, enter the returned access token as the Bearer credential. Development admin bootstrap is disabled by default; enable `Authentication:DevelopmentAdmin:Enabled` and provide its email, display name, and password through user secrets or environment variables. It is idempotent and Development-only.
+
+`appsettings.Development.json` contains an explicitly development-only signing key. **It MUST NOT be used in production.** Configure `Authentication__Jwt__Issuer`, `Authentication__Jwt__Audience`, and `Authentication__Jwt__SigningKey` through environment variables, secret management, or another external provider. Never store a production signing key or bootstrap password in source control.
+
 ## Build and test
 
 ```powershell
@@ -148,4 +160,4 @@ The hosted worker runs immediately and sequentially, survives iteration failures
 
 Phase 08 supplies operational queries and alerts. Optimized Dapper low-stock reporting remains Phase 10.
 
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 09 — Authentication & Authorization (Not Started).
+See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 10 — Inventory Queries & Dapper Reporting (Not Started).

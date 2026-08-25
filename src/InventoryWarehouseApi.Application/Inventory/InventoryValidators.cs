@@ -39,8 +39,6 @@ public sealed class InventoryAdjustmentRequestValidator : AbstractValidator<Inve
         RuleFor(x => x.Quantity).GreaterThan(0).PrecisionScale(18, 3, false);
         RuleFor(x => x.Reason).NotEmpty().Must(x => x is null || x.Trim().Length <= InventoryAdjustment.ReasonMaxLength)
             .WithMessage($"Reason cannot exceed {InventoryAdjustment.ReasonMaxLength} characters after trimming.");
-        RuleFor(x => x.AdjustedBy).NotEmpty().Must(x => x is null || x.Trim().Length <= InventoryAdjustment.AdjustedByMaxLength)
-            .WithMessage($"AdjustedBy cannot exceed {InventoryAdjustment.AdjustedByMaxLength} characters after trimming.");
     }
 }
 

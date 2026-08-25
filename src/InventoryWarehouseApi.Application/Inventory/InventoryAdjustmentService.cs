@@ -2,12 +2,13 @@ using FluentValidation;
 using InventoryWarehouseApi.Application.Common;
 using InventoryWarehouseApi.Domain.Entities;
 using InventoryWarehouseApi.Domain.Enums;
+using InventoryWarehouseApi.Application.Authentication;
 
 namespace InventoryWarehouseApi.Application.Inventory;
 
 internal sealed class InventoryAdjustmentService(IInventoryAdjustmentRepository repository,
     IValidator<InventoryAdjustmentRequest> requestValidator,
-    IValidator<InventoryAdjustmentHistoryQuery> queryValidator) : IInventoryAdjustmentService
+    IValidator<InventoryAdjustmentHistoryQuery> queryValidator, ICurrentUser currentUser) : IInventoryAdjustmentService
 {
     public Task<InventoryAdjustmentOperationResponse> IncreaseAsync(Guid productId, Guid warehouseId,
         Guid locationId, InventoryAdjustmentRequest request, CancellationToken ct) =>
@@ -31,7 +32,7 @@ internal sealed class InventoryAdjustmentService(IInventoryAdjustmentRepository 
     {
         await requestValidator.ValidateAndThrowAsync(request, ct);
         var result = await repository.ExecuteAsync(productId, warehouseId, locationId, type, request.Quantity,
-            request.Reason, request.AdjustedBy, DateTimeOffset.UtcNow, ct);
+            request.Reason, currentUser.Email, DateTimeOffset.UtcNow, ct);
         return new(result.Adjustment.Id, result.Adjustment.AdjustmentType, result.Adjustment.ProductId,
             result.Adjustment.WarehouseId, result.Adjustment.WarehouseLocationId, result.Adjustment.Quantity,
             result.Adjustment.Reason, result.Adjustment.AdjustedBy, result.Adjustment.StockMovementId,

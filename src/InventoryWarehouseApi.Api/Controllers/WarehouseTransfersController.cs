@@ -1,14 +1,17 @@
 using InventoryWarehouseApi.Application.Common;
 using InventoryWarehouseApi.Application.WarehouseTransfers;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;using InventoryWarehouseApi.Application.Authentication;
 
 namespace InventoryWarehouseApi.Api.Controllers;
 
 [ApiController]
 [Route("api/warehouse-transfers")]
+[Authorize(Policy=AuthorizationPolicies.InventoryRead)]
 public sealed class WarehouseTransfersController(IWarehouseTransferService service) : ControllerBase
 {
     [HttpPost]
+    [Authorize(Policy=AuthorizationPolicies.InventoryOperate)]
     public async Task<ActionResult<WarehouseTransferResponse>> Create(CreateWarehouseTransferRequest request, CancellationToken ct)
     {
         WarehouseTransferResponse transfer = await service.CreateAsync(request, ct);
@@ -23,5 +26,6 @@ public sealed class WarehouseTransfersController(IWarehouseTransferService servi
         CancellationToken ct) => service.ListAsync(query, ct);
 
     [HttpPost("{id:guid}/complete")]
+    [Authorize(Policy=AuthorizationPolicies.InventoryOperate)]
     public Task<WarehouseTransferResponse> Complete(Guid id, CancellationToken ct) => service.CompleteAsync(id, ct);
 }

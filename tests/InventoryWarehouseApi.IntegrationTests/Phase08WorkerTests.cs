@@ -71,7 +71,7 @@ public sealed class Phase08WorkerTests
         IConfiguration configuration = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
         ServiceCollection services = new();
         services.AddSingleton(configuration);
-        services.AddApiServices();
+        services.AddApiServices(configuration);
         using ServiceProvider provider = services.BuildServiceProvider();
         IOptions<LowStockMonitoringOptions> configured = provider.GetRequiredService<IOptions<LowStockMonitoringOptions>>();
         if (expectedValid)
