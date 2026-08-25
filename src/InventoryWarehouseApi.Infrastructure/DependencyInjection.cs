@@ -4,6 +4,7 @@ using InventoryWarehouseApi.Application.WarehouseLocations;
 using InventoryWarehouseApi.Application.Inventory;
 using InventoryWarehouseApi.Infrastructure.Persistence;
 using InventoryWarehouseApi.Application.WarehouseTransfers;
+using InventoryWarehouseApi.Application.InventoryReservations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IStockMovementRepository, StockMovementRepository>();
         services.AddScoped<IInventoryAdjustmentRepository, InventoryAdjustmentRepository>();
         services.AddScoped<IWarehouseTransferRepository, WarehouseTransferRepository>();
+        services.AddScoped<IInventoryReservationRepository, InventoryReservationRepository>();
         return services;
     }
 }

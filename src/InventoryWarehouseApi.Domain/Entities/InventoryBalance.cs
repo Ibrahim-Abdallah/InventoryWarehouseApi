@@ -37,6 +37,31 @@ public sealed class InventoryBalance
         OnHandQuantity -= quantity;
     }
 
+    public void Reserve(decimal quantity)
+    {
+        EnsurePositive(quantity);
+        if (quantity > AvailableQuantity)
+            throw new InvalidOperationException("Insufficient available stock for reservation.");
+        ReservedQuantity += quantity;
+    }
+
+    public void ReleaseReservation(decimal quantity)
+    {
+        EnsurePositive(quantity);
+        if (quantity > ReservedQuantity)
+            throw new InvalidOperationException("Insufficient reserved stock.");
+        ReservedQuantity -= quantity;
+    }
+
+    public void FulfillReservation(decimal quantity)
+    {
+        EnsurePositive(quantity);
+        if (quantity > ReservedQuantity)
+            throw new InvalidOperationException("Insufficient reserved stock.");
+        OnHandQuantity -= quantity;
+        ReservedQuantity -= quantity;
+    }
+
     private static void EnsurePositive(decimal quantity)
     {
         if (quantity <= 0) throw new ArgumentOutOfRangeException(nameof(quantity), "Quantity must be greater than zero.");

@@ -14,6 +14,7 @@ internal sealed class ProductRepository(InventoryWarehouseDbContext dbContext) :
     public Task<bool> HasInventoryAsync(Guid id, CancellationToken ct) => dbContext.InventoryBalances.AnyAsync(x => x.ProductId == id, ct);
     public Task<bool> HasMovementsAsync(Guid id, CancellationToken ct) => dbContext.StockMovements.AnyAsync(x => x.ProductId == id, ct);
     public Task<bool> HasTransfersAsync(Guid id, CancellationToken ct) => dbContext.WarehouseTransferItems.AnyAsync(x => x.ProductId == id, ct);
+    public Task<bool> HasReservationsAsync(Guid id, CancellationToken ct) => dbContext.InventoryReservations.AnyAsync(x => x.ProductId == id, ct);
     public async Task<PagedResult<Product>> ListAsync(ProductQuery q, CancellationToken ct)
     {
         IQueryable<Product> query = dbContext.Products.AsNoTracking();
@@ -48,5 +49,7 @@ internal sealed class ProductRepository(InventoryWarehouseDbContext dbContext) :
         { throw new ConflictException("The product cannot be deleted because it has stock movement history."); }
         catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_WarehouseTransferItems_Products"))
         { throw new ConflictException("The product cannot be deleted because it is referenced by warehouse transfers."); }
+        catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_InventoryReservations_Products"))
+        { throw new ConflictException("The product cannot be deleted because it is referenced by inventory reservations."); }
     }
 }

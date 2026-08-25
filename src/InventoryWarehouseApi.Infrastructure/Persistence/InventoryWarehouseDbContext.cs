@@ -13,6 +13,7 @@ public sealed class InventoryWarehouseDbContext(DbContextOptions<InventoryWareho
     public DbSet<InventoryAdjustment> InventoryAdjustments => Set<InventoryAdjustment>();
     public DbSet<WarehouseTransfer> WarehouseTransfers => Set<WarehouseTransfer>();
     public DbSet<WarehouseTransferItem> WarehouseTransferItems => Set<WarehouseTransferItem>();
+    public DbSet<InventoryReservation> InventoryReservations => Set<InventoryReservation>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InventoryWarehouseDbContext).Assembly);

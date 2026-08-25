@@ -1,6 +1,6 @@
 # InventoryWarehouseApi
 
-A production-style ASP.NET Core Web API portfolio project for inventory and warehouse management. Phase 06 — Warehouse Transfers is complete.
+A production-style ASP.NET Core Web API portfolio project for inventory and warehouse management. Phase 07 — Inventory Reservations is complete.
 
 ## Implemented capabilities
 
@@ -21,10 +21,13 @@ A production-style ASP.NET Core Web API portfolio project for inventory and ware
 - Pending-to-Completed warehouse transfers between exact inventory positions, including same-warehouse/different-location moves
 - Multi-product transfer documents with atomic completion, available-stock revalidation, stock conservation, and full rollback
 - Linked TransferOut and TransferIn entries in the unified stock-movement ledger
+- Active-to-Released/Fulfilled inventory reservations for one exact product position
+- Serializable reservation allocation, release, and fulfillment with optional normalized external references
+- Fulfillment through one linked StockOut ledger entry without expanding the movement-type catalog
 - Database-backed pagination, SKU/code and name search, active-state filtering, and controlled sorting
 - FluentValidation request and query validation
 - Problem Details responses for validation (400), missing resources (404), conflicts (409), and unexpected errors (500)
-- EF Core 10 with SQL Server and migrations through `AddWarehouseTransfers`
+- EF Core 10 with SQL Server and migrations through `AddInventoryReservations`
 - ASP.NET Core OpenAPI and Scalar API Reference
 - Serilog request and structured console logging
 - Unit tests and HTTP-pipeline integration tests using isolated SQLite in-memory databases
@@ -79,6 +82,12 @@ POST /api/warehouse-transfers
 POST /api/warehouse-transfers/{id}/complete
 GET  /api/warehouse-transfers/{id}
 GET  /api/warehouse-transfers
+
+POST /api/inventory-reservations
+POST /api/inventory-reservations/{id}/release
+POST /api/inventory-reservations/{id}/fulfill
+GET  /api/inventory-reservations/{id}
+GET  /api/inventory-reservations
 ```
 
 Stock command bodies contain a positive `quantity` and may include `referenceType` and `referenceId`; reference fields must be supplied together. Movement history uses `pageNumber` and `pageSize` (maximum 100), is scoped to the exact product/warehouse/location position, and returns newest records first.
@@ -87,7 +96,9 @@ Adjustment command bodies require a positive `quantity`, a `reason`, and `adjust
 
 Warehouse transfers move up to 100 distinct products from one exact warehouse/location position to another. Same-warehouse transfers are supported when the locations differ. Creation validates current source availability and persists a `Pending` document, but it does not reserve stock, change balances, or create movements. Completion revalidates current `AvailableQuantity` inside one Serializable transaction, issues only unreserved source stock, receives it at the destination, and records paired `TransferOut`/`TransferIn` movements with one shared timestamp and transfer reference. Any failing item rolls back every balance, movement, link, and status change, preserving total on-hand stock. Transfer detail and deterministic newest-first paged history are available through the transfer endpoints. Cancellation, in-transit states, and partial completion are not part of this lifecycle.
 
-Pending transfers do **not** reserve inventory. Inventory Reservations belong to Phase 07.
+Inventory reservations have a deliberately small lifecycle: `Active -> Released` or `Active -> Fulfilled`. Creation increases `ReservedQuantity` only, leaving `OnHandQuantity` unchanged and creating no stock movement. It is limited by current `AvailableQuantity`; optional `referenceType`/`referenceId` values are trimmed, length-limited, and must be supplied together. Release frees the full reserved quantity without a physical ledger entry. Fulfillment consumes the full quantity from both on-hand and reserved stock, so availability remains stable relative to immediately before fulfillment, and creates exactly one linked `StockOut` movement using the reservation ID as its reference. Partial release, partial fulfillment, amendment, reassignment, and expiration are not supported in Phase 07.
+
+Reservation create, release, and fulfillment each execute atomically in one Serializable transaction. Existing Stock Out and Warehouse Transfer completion continue to use `AvailableQuantity`, so active reservations protect their allocated stock. Pending warehouse transfers still do **not** reserve inventory; inventory reservations are the explicit allocation mechanism.
 
 Collection queries accept `pageNumber` (default 1), `pageSize` (default 20, maximum 100), `search`, `isActive`, `sortBy`, and `sortDirection` (`asc` or `desc`). Products allow `sku`, `name`, `createdAtUtc`, and `updatedAtUtc` sorting; warehouses allow `code`, `name`, `createdAtUtc`, and `updatedAtUtc`. The deterministic default is newest creation time first.
 
@@ -123,6 +134,6 @@ dotnet test
 
 Integration tests replace SQL Server with a kept-open SQLite in-memory connection and create isolated relational schemas; they never use or modify the developer database.
 
-Tests cover domain invariants, validation, relational constraints, HTTP behavior, atomic stock operations, adjustments and transfers, audit and movement history, stock conservation, rollback, aggregation, zero balances, and safe deletes.
+Tests cover domain invariants, validation, relational constraints, HTTP behavior, atomic stock operations, adjustments, transfers and reservations, audit and movement history, stock conservation, rollback, aggregation, zero balances, and safe deletes.
 
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 07 — Inventory Reservations (Not Started).
+See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 08 — Low Stock Monitoring & Background Jobs (Not Started).

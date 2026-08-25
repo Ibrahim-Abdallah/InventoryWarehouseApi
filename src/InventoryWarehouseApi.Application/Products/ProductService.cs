@@ -50,6 +50,8 @@ internal sealed class ProductService(IProductRepository repository, IValidator<C
             throw new ConflictException("The product cannot be deleted because it has stock movement history.");
         if (await repository.HasTransfersAsync(id, cancellationToken))
             throw new ConflictException("The product cannot be deleted because it is referenced by warehouse transfers.");
+        if (await repository.HasReservationsAsync(id, cancellationToken))
+            throw new ConflictException("The product cannot be deleted because it is referenced by inventory reservations.");
         repository.Remove(product);
         await repository.SaveChangesAsync(cancellationToken);
     }
