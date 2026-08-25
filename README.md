@@ -134,6 +134,18 @@ dotnet test
 
 Integration tests replace SQL Server with a kept-open SQLite in-memory connection and create isolated relational schemas; they never use or modify the developer database.
 
-Tests cover domain invariants, validation, relational constraints, HTTP behavior, atomic stock operations, adjustments, transfers and reservations, audit and movement history, stock conservation, rollback, aggregation, zero balances, and safe deletes.
+Tests cover domain invariants, validation, relational constraints, HTTP behavior, atomic stock operations, adjustments, transfers, reservations, and low-stock monitoring.
 
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 08 — Low Stock Monitoring & Background Jobs (Not Started).
+## Low-stock monitoring
+
+Phase 08 configures one threshold per exact product, warehouse, and warehouse-location position through `PUT /api/low-stock-thresholds/products/{productId}/warehouses/{warehouseId}/locations/{locationId}`. Threshold administration supports exact lookup and paged filtering. Enabled thresholds are operationally low when `AvailableQuantity <= ThresholdQuantity`; the comparison is inclusive, and a configured position without an inventory balance participates as zero on-hand, reserved, and available stock.
+
+`GET /api/low-stock` returns active-master-data positions using deterministic, database-side pagination. Because availability is `OnHandQuantity - ReservedQuantity`, a reservation can make a position low even while physical on-hand stock remains. Stock Out and Stock In affect the query naturally through balances; monitoring itself never mutates inventory or creates a `StockMovement`.
+
+Persistent alerts keep one active alert per threshold. Repeated scans update its observation rather than duplicate it; recovery, disabling a threshold, lowering a threshold below current availability, or deactivating master data resolves it. A later recurrence creates a new historical alert. `GET /api/low-stock-alerts` exposes paged active and resolved history.
+
+The hosted worker runs immediately and sequentially, survives iteration failures, and uses a fresh dependency-injection scope per scan. `LowStockMonitoring:Enabled` controls execution; the default interval is 60 seconds and Development uses 10 seconds. Integration-test hosts disable automatic execution and invoke the monitoring service directly for deterministic coverage. Logs contain structured scan counts and failures.
+
+Phase 08 supplies operational queries and alerts. Optimized Dapper low-stock reporting remains Phase 10.
+
+See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 09 — Authentication & Authorization (Not Started).

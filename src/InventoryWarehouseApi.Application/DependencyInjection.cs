@@ -5,6 +5,7 @@ using InventoryWarehouseApi.Application.WarehouseLocations;
 using InventoryWarehouseApi.Application.Inventory;
 using InventoryWarehouseApi.Application.WarehouseTransfers;
 using InventoryWarehouseApi.Application.InventoryReservations;
+using InventoryWarehouseApi.Application.LowStock;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace InventoryWarehouseApi.Application;
@@ -31,6 +32,10 @@ public static class DependencyInjection
         services.AddScoped<IValidator<WarehouseTransferHistoryQuery>, WarehouseTransferHistoryQueryValidator>();
         services.AddScoped<IValidator<CreateInventoryReservationRequest>, CreateInventoryReservationValidator>();
         services.AddScoped<IValidator<InventoryReservationHistoryQuery>, InventoryReservationHistoryQueryValidator>();
+        services.AddScoped<IValidator<UpsertLowStockThresholdRequest>, UpsertLowStockThresholdValidator>();
+        services.AddScoped<IValidator<LowStockThresholdQuery>, LowStockThresholdQueryValidator>();
+        services.AddScoped<IValidator<LowStockQuery>, LowStockQueryValidator>();
+        services.AddScoped<IValidator<LowStockAlertQuery>, LowStockAlertQueryValidator>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IWarehouseService, WarehouseService>();
         services.AddScoped<IWarehouseLocationService, WarehouseLocationService>();
@@ -39,6 +44,8 @@ public static class DependencyInjection
         services.AddScoped<IInventoryAdjustmentService, InventoryAdjustmentService>();
         services.AddScoped<IWarehouseTransferService, WarehouseTransferService>();
         services.AddScoped<IInventoryReservationService, InventoryReservationService>();
+        services.AddScoped<ILowStockService, LowStockService>();
+        services.AddScoped<ILowStockMonitoringService, LowStockMonitoringService>();
         return services;
     }
 }
