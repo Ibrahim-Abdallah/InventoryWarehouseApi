@@ -1,0 +1,15 @@
+using InventoryWarehouseApi.Application.Authentication;
+using InventoryWarehouseApi.Domain.Entities;
+using InventoryWarehouseApi.Domain.Enums;
+namespace InventoryWarehouseApi.UnitTests;
+public sealed class Phase09DomainTests
+{
+ [Fact]public void User_NormalizesAndStartsActive(){var t=new DateTimeOffset(2026,1,1,1,0,0,TimeSpan.FromHours(2));var u=new User(Guid.NewGuid(),"  Person@Example.COM ","  Person Name ","hash",UserRole.Admin,t);Assert.Equal("person@example.com",u.Email);Assert.Equal("PERSON@EXAMPLE.COM",u.NormalizedEmail);Assert.Equal("Person Name",u.DisplayName);Assert.True(u.IsActive);Assert.Equal(TimeSpan.Zero,u.CreatedAtUtc.Offset);}
+ [Fact]public void User_RejectsInvalidIdentityRoleAndTimestamps(){Assert.Throws<ArgumentException>(()=>new User(Guid.Empty,"a@b.com","A","h",UserRole.Admin,DateTimeOffset.UtcNow));Assert.Throws<ArgumentOutOfRangeException>(()=>new User(Guid.NewGuid(),"a@b.com","A","h",(UserRole)99,DateTimeOffset.UtcNow));var now=DateTimeOffset.UtcNow;Assert.Throws<ArgumentException>(()=>new User(Guid.NewGuid(),"a@b.com","A","h",UserRole.Viewer,now,now.AddSeconds(-1)));}
+ [Fact]public void User_ControlledStateChanges(){var now=DateTimeOffset.UtcNow;var u=new User(Guid.NewGuid(),"a@b.com","A","h",UserRole.WarehouseOperator,now);u.ChangeRole(UserRole.Viewer,now.AddMinutes(1));u.Deactivate(now.AddMinutes(2));Assert.Equal(UserRole.Viewer,u.Role);Assert.False(u.IsActive);u.Activate(now.AddMinutes(3));Assert.True(u.IsActive);}
+ [Fact]public void RefreshToken_ActiveExpiryAndRevocation(){var now=DateTimeOffset.UtcNow;var t=new RefreshToken(Guid.NewGuid(),Guid.NewGuid(),new string('A',64),now,now.AddDays(1));Assert.True(t.IsActive(now));Assert.False(t.IsActive(now.AddDays(1)));t.Revoke(now.AddMinutes(1));t.Revoke(now.AddMinutes(2));Assert.False(t.IsActive(now));Assert.Equal(now.AddMinutes(1),t.RevokedAtUtc);}
+ [Fact]public void RefreshToken_RejectsInvalidValues(){var now=DateTimeOffset.UtcNow;Assert.Throws<ArgumentException>(()=>new RefreshToken(Guid.Empty,Guid.NewGuid(),"h",now,now.AddDays(1)));Assert.Throws<ArgumentException>(()=>new RefreshToken(Guid.NewGuid(),Guid.NewGuid()," ",now,now.AddDays(1)));Assert.Throws<ArgumentException>(()=>new RefreshToken(Guid.NewGuid(),Guid.NewGuid(),"h",now,now));}
+ [Theory][InlineData(UserRole.Admin,7)][InlineData(UserRole.InventoryManager,6)][InlineData(UserRole.WarehouseOperator,3)][InlineData(UserRole.Viewer,2)]public void PermissionMatrix_HasExactCounts(UserRole role,int count)=>Assert.Equal(count,Permissions.ForRole(role).Count);
+ [Fact]public void OperatorAndViewer_DoNotLeakMutationPermissions(){var op=Permissions.ForRole(UserRole.WarehouseOperator);Assert.Equal([Permissions.CatalogRead,Permissions.InventoryRead,Permissions.InventoryOperate],op);Assert.Equal([Permissions.CatalogRead,Permissions.InventoryRead],Permissions.ForRole(UserRole.Viewer));}
+ [Fact]public void ManagerCannotManageUsers(){Assert.DoesNotContain(Permissions.UsersManage,Permissions.ForRole(UserRole.InventoryManager));Assert.Contains(Permissions.UsersManage,Permissions.ForRole(UserRole.Admin));}
+}

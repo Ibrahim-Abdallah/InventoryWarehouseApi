@@ -31,5 +31,6 @@ public sealed class HealthCheckTests : IClassFixture<ApiFactory>
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
         Assert.Equal("application/json", response.Content.Headers.ContentType?.MediaType);
+        Assert.Contains("\"Bearer\"", await response.Content.ReadAsStringAsync());
     }
 }

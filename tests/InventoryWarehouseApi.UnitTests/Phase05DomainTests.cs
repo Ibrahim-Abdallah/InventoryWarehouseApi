@@ -80,9 +80,8 @@ public sealed class Phase05DomainTests
     public void Phase05Validators_RejectInvalidRequestsAndPaging()
     {
         InventoryAdjustmentRequestValidator validator = new();
-        Assert.False(validator.Validate(new InventoryAdjustmentRequest(1.0001m, "reason", "user")).IsValid);
-        Assert.False(validator.Validate(new InventoryAdjustmentRequest(1m, " ", "user")).IsValid);
-        Assert.False(validator.Validate(new InventoryAdjustmentRequest(1m, "reason", " ")).IsValid);
+        Assert.False(validator.Validate(new InventoryAdjustmentRequest(1.0001m, "reason")).IsValid);
+        Assert.False(validator.Validate(new InventoryAdjustmentRequest(1m, " ")).IsValid);
         Assert.False(new InventoryAdjustmentHistoryQueryValidator().Validate(new InventoryAdjustmentHistoryQuery(0, 101)).IsValid);
     }
 

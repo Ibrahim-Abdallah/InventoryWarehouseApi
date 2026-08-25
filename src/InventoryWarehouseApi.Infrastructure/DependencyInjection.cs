@@ -9,6 +9,8 @@ using InventoryWarehouseApi.Application.LowStock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using InventoryWarehouseApi.Application.Authentication;
+using InventoryWarehouseApi.Infrastructure.Security;
 
 namespace InventoryWarehouseApi.Infrastructure;
 
@@ -28,6 +30,10 @@ public static class DependencyInjection
         services.AddScoped<IWarehouseTransferRepository, WarehouseTransferRepository>();
         services.AddScoped<IInventoryReservationRepository, InventoryReservationRepository>();
         services.AddScoped<ILowStockRepository, LowStockRepository>();
+        services.AddScoped<IAuthenticationRepository, AuthenticationRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPasswordHashService, PasswordHashService>();
+        services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
         return services;
     }
 }

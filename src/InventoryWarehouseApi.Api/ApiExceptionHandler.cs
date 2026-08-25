@@ -14,6 +14,7 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problemDetailsSer
             ValidationException => StatusCodes.Status400BadRequest,
             NotFoundException => StatusCodes.Status404NotFound,
             ConflictException => StatusCodes.Status409Conflict,
+            UnauthorizedException => StatusCodes.Status401Unauthorized,
             _ => StatusCodes.Status500InternalServerError
         };
         if (status == 500) logger.LogError(exception, "An unhandled request exception occurred.");
@@ -22,7 +23,7 @@ public sealed class ApiExceptionHandler(IProblemDetailsService problemDetailsSer
         ProblemDetails details = new()
         {
             Status = status,
-            Title = status switch { 400 => "Validation failed", 404 => "Resource not found", 409 => "Conflict", _ => "An unexpected error occurred" },
+            Title = status switch { 400 => "Validation failed", 401 => "Unauthorized", 404 => "Resource not found", 409 => "Conflict", _ => "An unexpected error occurred" },
             Detail = status == 500 ? "An unexpected error occurred while processing the request." : exception.Message
         };
         if (exception is ValidationException validation)

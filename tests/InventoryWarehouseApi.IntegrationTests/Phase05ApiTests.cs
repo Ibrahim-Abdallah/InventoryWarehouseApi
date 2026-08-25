@@ -26,7 +26,7 @@ public sealed class Phase05ApiTests
         InventoryAdjustmentOperationResponse second = await Post(client, p, "increase", new(2m, "Receipt correction", "manager"));
 
         Assert.Equal((7m, 0m, 7m), (second.OnHandQuantity, second.ReservedQuantity, second.AvailableQuantity));
-        Assert.Equal(("Count correction", "manager"), (first.Reason, first.AdjustedBy));
+        Assert.Equal(("Count correction", "integration-admin@tests.local"), (first.Reason, first.AdjustedBy));
         Assert.Equal(StockMovementType.AdjustmentIncrease, first.StockMovementType);
         using IServiceScope scope = factory.Services.CreateScope();
         InventoryWarehouseDbContext db = scope.ServiceProvider.GetRequiredService<InventoryWarehouseDbContext>();
@@ -48,7 +48,7 @@ public sealed class Phase05ApiTests
         Assert.Equal((4m, 4m, 0m), (result.OnHandQuantity, result.ReservedQuantity, result.AvailableQuantity));
         Assert.Equal(StockMovementType.AdjustmentDecrease, result.StockMovementType);
 
-        HttpResponseMessage failed = await client.PostAsJsonAsync(Url(p, "adjustments/decrease"), new InventoryAdjustmentRequest(1m, "bad", "auditor"));
+        HttpResponseMessage failed = await client.PostAsJsonAsync(Url(p, "adjustments/decrease"), new InventoryAdjustmentRequest(1m, "bad"));
         Assert.Equal(HttpStatusCode.Conflict, failed.StatusCode);
         using IServiceScope scope = factory.Services.CreateScope();
         InventoryWarehouseDbContext db = scope.ServiceProvider.GetRequiredService<InventoryWarehouseDbContext>();
@@ -64,7 +64,7 @@ public sealed class Phase05ApiTests
         using ApiFactory factory = new();
         using HttpClient client = factory.CreateClient();
         var p = await CreatePosition(client, "empty-adj");
-        Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync(Url(p, "adjustments/decrease"), new InventoryAdjustmentRequest(1m, "count", "user"))).StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, (await client.PostAsJsonAsync(Url(p, "adjustments/decrease"), new InventoryAdjustmentRequest(1m, "count"))).StatusCode);
         using IServiceScope scope = factory.Services.CreateScope();
         InventoryWarehouseDbContext db = scope.ServiceProvider.GetRequiredService<InventoryWarehouseDbContext>();
         Assert.False(await db.InventoryBalances.AnyAsync());
@@ -82,9 +82,8 @@ public sealed class Phase05ApiTests
         Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync(Url((Guid.NewGuid(), p.WarehouseId, p.LocationId), "adjustments/increase"), valid)).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync(Url((p.ProductId, Guid.NewGuid(), p.LocationId), "adjustments/increase"), valid)).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await client.PostAsJsonAsync(Url((p.ProductId, p.WarehouseId, Guid.NewGuid()), "adjustments/increase"), valid)).StatusCode);
-        InventoryAdjustmentRequest[] invalid = [new(0m, "reason", "user"), new(-1m, "reason", "user"),
-            new(1.0001m, "reason", "user"), new(1m, " ", "user"), new(1m, new string('r', 501), "user"),
-            new(1m, "reason", " "), new(1m, "reason", new string('u', 129))];
+        InventoryAdjustmentRequest[] invalid = [new(0m, "reason"), new(-1m, "reason"),
+            new(1.0001m, "reason"), new(1m, " "), new(1m, new string('r', 501))];
         foreach (InventoryAdjustmentRequest request in invalid)
             Assert.Equal(HttpStatusCode.BadRequest, (await client.PostAsJsonAsync(Url(p, "adjustments/increase"), request)).StatusCode);
     }

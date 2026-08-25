@@ -16,6 +16,8 @@ public sealed class InventoryWarehouseDbContext(DbContextOptions<InventoryWareho
     public DbSet<InventoryReservation> InventoryReservations => Set<InventoryReservation>();
     public DbSet<LowStockThreshold> LowStockThresholds => Set<LowStockThreshold>();
     public DbSet<LowStockAlert> LowStockAlerts => Set<LowStockAlert>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InventoryWarehouseDbContext).Assembly);

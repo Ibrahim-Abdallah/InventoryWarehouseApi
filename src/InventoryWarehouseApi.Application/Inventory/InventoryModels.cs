@@ -1,5 +1,6 @@
 using InventoryWarehouseApi.Application.Common;
 using InventoryWarehouseApi.Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace InventoryWarehouseApi.Application.Inventory;
 
@@ -22,7 +23,11 @@ public sealed record StockMovementResponse(Guid Id, Guid ProductId, Guid Warehou
     string? ReferenceType, string? ReferenceId, DateTimeOffset OccurredAtUtc);
 public sealed record StockMovementHistoryQuery(int PageNumber = 1, int PageSize = 20);
 
-public sealed record InventoryAdjustmentRequest(decimal Quantity, string Reason, string AdjustedBy);
+[method: JsonConstructor]
+public sealed record InventoryAdjustmentRequest(decimal Quantity, string Reason)
+{
+    public InventoryAdjustmentRequest(decimal quantity, string reason, string _) : this(quantity, reason) { }
+}
 public sealed record InventoryAdjustmentOperationResponse(Guid AdjustmentId, InventoryAdjustmentType AdjustmentType,
     Guid ProductId, Guid WarehouseId, Guid WarehouseLocationId, decimal Quantity, string Reason,
     string AdjustedBy, Guid StockMovementId, StockMovementType StockMovementType, DateTimeOffset AdjustedAtUtc,

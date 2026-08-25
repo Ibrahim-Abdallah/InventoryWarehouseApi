@@ -7,6 +7,7 @@ using InventoryWarehouseApi.Application.WarehouseTransfers;
 using InventoryWarehouseApi.Application.InventoryReservations;
 using InventoryWarehouseApi.Application.LowStock;
 using Microsoft.Extensions.DependencyInjection;
+using InventoryWarehouseApi.Application.Authentication;
 
 namespace InventoryWarehouseApi.Application;
 
@@ -46,6 +47,14 @@ public static class DependencyInjection
         services.AddScoped<IInventoryReservationService, InventoryReservationService>();
         services.AddScoped<ILowStockService, LowStockService>();
         services.AddScoped<ILowStockMonitoringService, LowStockMonitoringService>();
+        services.AddScoped<IValidator<LoginRequest>, LoginRequestValidator>();
+        services.AddScoped<IValidator<RefreshTokenRequest>, RefreshTokenRequestValidator>();
+        services.AddScoped<IValidator<LogoutRequest>, LogoutRequestValidator>();
+        services.AddScoped<IValidator<CreateUserRequest>, CreateUserRequestValidator>();
+        services.AddScoped<IValidator<UpdateUserRoleRequest>, UpdateUserRoleRequestValidator>();
+        services.AddScoped<IValidator<UserQuery>, UserQueryValidator>();
+        services.AddScoped<IAuthenticationService, AuthenticationService>();
+        services.AddScoped<IUserService, UserService>();
         return services;
     }
 }
