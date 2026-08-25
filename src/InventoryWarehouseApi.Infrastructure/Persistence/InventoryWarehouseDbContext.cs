@@ -14,6 +14,8 @@ public sealed class InventoryWarehouseDbContext(DbContextOptions<InventoryWareho
     public DbSet<WarehouseTransfer> WarehouseTransfers => Set<WarehouseTransfer>();
     public DbSet<WarehouseTransferItem> WarehouseTransferItems => Set<WarehouseTransferItem>();
     public DbSet<InventoryReservation> InventoryReservations => Set<InventoryReservation>();
+    public DbSet<LowStockThreshold> LowStockThresholds => Set<LowStockThreshold>();
+    public DbSet<LowStockAlert> LowStockAlerts => Set<LowStockAlert>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) =>
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(InventoryWarehouseDbContext).Assembly);

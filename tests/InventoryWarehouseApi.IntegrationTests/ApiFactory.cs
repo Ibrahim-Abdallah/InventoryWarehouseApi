@@ -15,6 +15,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        builder.UseSetting("LowStockMonitoring:Enabled", "false");
         _connection.Open();
         builder.UseEnvironment("Development");
         builder.ConfigureServices(services =>

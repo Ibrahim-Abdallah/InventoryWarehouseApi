@@ -55,5 +55,7 @@ internal sealed class WarehouseLocationRepository(InventoryWarehouseDbContext db
         { throw new ConflictException("The warehouse location cannot be deleted because it is referenced by warehouse transfers."); }
         catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_InventoryReservations_WarehouseLocations"))
         { throw new ConflictException("The warehouse location cannot be deleted because it is referenced by inventory reservations."); }
+        catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_LowStockThresholds_WarehouseLocations"))
+        { throw new ConflictException("The warehouse location cannot be deleted because it has low-stock monitoring configuration."); }
     }
 }

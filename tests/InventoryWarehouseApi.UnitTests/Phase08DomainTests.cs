@@ -1,0 +1,12 @@
+using InventoryWarehouseApi.Domain.Entities;
+namespace InventoryWarehouseApi.UnitTests;
+public sealed class Phase08DomainTests
+{
+ [Fact] public void Threshold_CreationAndUpdate_PreservePositionAndNormalizeUtc(){var local=new DateTimeOffset(2026,1,1,12,0,0,TimeSpan.FromHours(2));var x=new LowStockThreshold(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),0,true,local);var created=x.CreatedAtUtc;x.Update(5.123m,false,local.AddHours(1));Assert.Equal(TimeSpan.Zero,x.CreatedAtUtc.Offset);Assert.Equal(created,x.CreatedAtUtc);Assert.Equal(5.123m,x.ThresholdQuantity);Assert.False(x.IsEnabled);}
+ [Theory][InlineData(-1)][InlineData(1.0001)] public void Threshold_InvalidQuantityRejected(decimal q)=>Assert.ThrowsAny<ArgumentException>(()=>new LowStockThreshold(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),q,true,DateTimeOffset.UtcNow));
+ [Fact] public void Threshold_EmptyIdsRejected(){Assert.Throws<ArgumentException>(()=>new LowStockThreshold(Guid.Empty,Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),0,true,DateTimeOffset.UtcNow));Assert.Throws<ArgumentException>(()=>new LowStockThreshold(Guid.NewGuid(),Guid.Empty,Guid.NewGuid(),Guid.NewGuid(),0,true,DateTimeOffset.UtcNow));}
+ [Fact] public void Threshold_UpdateBeforeCreationRejected(){var now=DateTimeOffset.UtcNow;var x=new LowStockThreshold(Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid(),1,true,now);Assert.Throws<ArgumentOutOfRangeException>(()=>x.Update(2,true,now.AddSeconds(-1)));}
+ [Fact] public void Alert_CreationObservationResolution_TracksLifecycle(){var now=DateTimeOffset.UtcNow;var x=new LowStockAlert(Guid.NewGuid(),Guid.NewGuid(),5,4,now);Assert.True(x.IsActive);x.Observe(6,3,now.AddMinutes(1));Assert.Equal((6m,3m),(x.ThresholdQuantity,x.AvailableQuantity));x.Resolve(8,now.AddMinutes(2));Assert.False(x.IsActive);Assert.Throws<InvalidOperationException>(()=>x.Observe(5,4,now.AddMinutes(3)));Assert.Throws<InvalidOperationException>(()=>x.Resolve(9,now.AddMinutes(3)));}
+ [Theory][InlineData(-1)][InlineData(1.0001)] public void Alert_InvalidQuantitiesRejected(decimal q)=>Assert.ThrowsAny<ArgumentException>(()=>new LowStockAlert(Guid.NewGuid(),Guid.NewGuid(),q,0,DateTimeOffset.UtcNow));
+ [Fact] public void Alert_InvalidTimestampsRejected(){var now=DateTimeOffset.UtcNow;var x=new LowStockAlert(Guid.NewGuid(),Guid.NewGuid(),1,0,now);Assert.Throws<ArgumentOutOfRangeException>(()=>x.Observe(1,0,now.AddSeconds(-1)));Assert.Throws<ArgumentOutOfRangeException>(()=>x.Resolve(0,now.AddSeconds(-1)));}
+}

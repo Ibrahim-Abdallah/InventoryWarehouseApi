@@ -51,5 +51,7 @@ internal sealed class ProductRepository(InventoryWarehouseDbContext dbContext) :
         { throw new ConflictException("The product cannot be deleted because it is referenced by warehouse transfers."); }
         catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_InventoryReservations_Products"))
         { throw new ConflictException("The product cannot be deleted because it is referenced by inventory reservations."); }
+        catch (DbUpdateException ex) when (UniqueConstraintDetector.Matches(ex, "FK_LowStockThresholds_Products"))
+        { throw new ConflictException("The product cannot be deleted because it has low-stock monitoring configuration."); }
     }
 }

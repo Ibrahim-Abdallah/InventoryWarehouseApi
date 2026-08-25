@@ -494,6 +494,10 @@ Introduce proactive inventory monitoring.
 
 The system can automatically identify products that require inventory attention.
 
+### Status
+
+Completed. Exact product/warehouse/location thresholds, `AvailableQuantity`-based operational low-stock evaluation, persistent alert reconciliation, a configurable hosted monitoring worker, structured scan logging, relational safeguards, and automated domain/integration coverage are implemented.
+
 ---
 
 ## Phase 09 — Authentication & Authorization
@@ -686,7 +690,7 @@ Throughout development:
 | 05 — Stock Adjustments                        | Completed   |
 | 06 — Warehouse Transfers                      | Completed   |
 | 07 — Inventory Reservations                   | Completed   |
-| 08 — Low Stock Monitoring & Background Jobs   | Not Started |
+| 08 — Low Stock Monitoring & Background Jobs   | Completed   |
 | 09 — Authentication & Authorization           | Not Started |
 | 10 — Inventory Queries & Dapper Reporting     | Not Started |
 | 11 — Testing & Reliability                    | Not Started |
@@ -696,4 +700,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 08 — Low Stock Monitoring & Background Jobs (Not Started)**
+**Phase 09 — Authentication & Authorization (Not Started)**
