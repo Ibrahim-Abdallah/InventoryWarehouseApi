@@ -468,6 +468,10 @@ Support temporary allocation of inventory.
 
 Inventory can be safely reserved without corrupting physical stock quantities.
 
+### Status
+
+Completed. Exact-position Active-to-Released/Fulfilled reservations, available-stock validation, immutable quantities and external references, Serializable atomic balance updates, StockOut-backed fulfillment, deterministic history, relational lifecycle safeguards, deletion integrity, and automated unit/integration coverage are implemented. Pending transfers remain non-reserving and revalidate availability at completion.
+
 ---
 
 ## Phase 08 — Low Stock Monitoring & Background Jobs
@@ -681,7 +685,7 @@ Throughout development:
 | 04 — Stock Movement Engine                    | Completed   |
 | 05 — Stock Adjustments                        | Completed   |
 | 06 — Warehouse Transfers                      | Completed   |
-| 07 — Inventory Reservations                   | Not Started |
+| 07 — Inventory Reservations                   | Completed   |
 | 08 — Low Stock Monitoring & Background Jobs   | Not Started |
 | 09 — Authentication & Authorization           | Not Started |
 | 10 — Inventory Queries & Dapper Reporting     | Not Started |
@@ -692,4 +696,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 07 — Inventory Reservations (Not Started)**
+**Phase 08 — Low Stock Monitoring & Background Jobs (Not Started)**

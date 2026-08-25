@@ -49,6 +49,7 @@ internal sealed class WarehouseLocationService(IWarehouseLocationRepository repo
         if (await repository.HasInventoryAsync(warehouseId, id, ct)) throw new ConflictException("The warehouse location cannot be deleted because it has inventory balances.");
         if (await repository.HasMovementsAsync(warehouseId, id, ct)) throw new ConflictException("The warehouse location cannot be deleted because it has stock movement history.");
         if (await repository.HasTransfersAsync(warehouseId, id, ct)) throw new ConflictException("The warehouse location cannot be deleted because it is referenced by warehouse transfers.");
+        if (await repository.HasReservationsAsync(warehouseId, id, ct)) throw new ConflictException("The warehouse location cannot be deleted because it is referenced by inventory reservations.");
         repository.Remove(location);
         await repository.SaveChangesAsync(ct);
     }

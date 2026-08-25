@@ -10,6 +10,7 @@ public interface IProductRepository
     Task<bool> HasInventoryAsync(Guid id, CancellationToken cancellationToken);
     Task<bool> HasMovementsAsync(Guid id, CancellationToken cancellationToken);
     Task<bool> HasTransfersAsync(Guid id, CancellationToken cancellationToken);
+    Task<bool> HasReservationsAsync(Guid id, CancellationToken cancellationToken);
     Task<PagedResult<Product>> ListAsync(ProductQuery query, CancellationToken cancellationToken);
     Task AddAsync(Product product, CancellationToken cancellationToken);
     void Remove(Product product);
