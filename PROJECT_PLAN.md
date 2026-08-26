@@ -563,6 +563,10 @@ The API provides efficient read-heavy reporting endpoints without forcing all qu
 
 ## Phase 11 — Testing & Reliability
 
+**Status: Completed**
+
+Expanded unit and integration regression coverage protects transaction failure invariants, competing inventory-state revalidation, validation boundaries, authorization and token revocation, Problem Details and sanitized 500 responses, worker logging/recovery, and exact-availability edge cases. Automated relational tests use isolated shared in-memory SQLite; simultaneous SQL Server concurrency remains a separate manual acceptance boundary.
+
 ### Objectives
 
 Strengthen reliability and production readiness.
@@ -697,11 +701,11 @@ Throughout development:
 | 08 — Low Stock Monitoring & Background Jobs   | Completed   |
 | 09 — Authentication & Authorization           | Completed   |
 | 10 — Inventory Queries & Dapper Reporting     | Completed   |
-| 11 — Testing & Reliability                    | Not Started |
+| 11 — Testing & Reliability                    | Completed   |
 | 12 — Portfolio Polish & Documentation         | Not Started |
 
 ---
 
 ## Current Phase
 
-**Phase 11 — Testing & Reliability (Not Started)**
+**Phase 12 — Portfolio Polish & Documentation (Not Started)**

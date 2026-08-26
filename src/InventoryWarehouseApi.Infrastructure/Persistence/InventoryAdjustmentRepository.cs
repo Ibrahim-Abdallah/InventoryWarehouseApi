@@ -23,8 +23,8 @@ internal sealed class InventoryAdjustmentRepository(InventoryWarehouseDbContext 
         if (!await WarehouseExistsAsync(warehouseId, ct)) throw new NotFoundException("Warehouse was not found.");
         if (!await LocationExistsAsync(warehouseId, locationId, ct)) throw new NotFoundException("Warehouse location was not found.");
 
-        InventoryBalance? balance = await dbContext.InventoryBalances.SingleOrDefaultAsync(x =>
-            x.ProductId == productId && x.WarehouseId == warehouseId && x.WarehouseLocationId == locationId, ct);
+        InventoryBalance? balance = await dbContext.FindInventoryBalanceForUpdateAsync(
+            productId, warehouseId, locationId, ct);
         if (adjustmentType == InventoryAdjustmentType.Increase)
         {
             if (balance is null)

@@ -44,8 +44,9 @@ public sealed class Phase08WorkerTests
     public async Task IterationFailure_DoesNotKillWorker()
     {
         FakeMonitoringService fake = new(failFirstInvocation: true);
+        TestLogger logger = new();
         await using ServiceProvider provider = Services(fake).BuildServiceProvider();
-        LowStockMonitoringWorker worker = Worker(provider, new() { Enabled = true, IntervalSeconds = 5 });
+        LowStockMonitoringWorker worker = Worker(provider, new() { Enabled = true, IntervalSeconds = 5 }, logger);
 
         await worker.StartAsync(CancellationToken.None);
         await fake.WaitForInvocationsAsync(2, TimeSpan.FromSeconds(7));
@@ -53,6 +54,7 @@ public sealed class Phase08WorkerTests
 
         Assert.True(fake.InvocationCount >= 2);
         Assert.Equal(1, fake.SuccessCount);
+        Assert.Contains(LogLevel.Error, logger.Levels);
     }
 
     [Theory]

@@ -42,18 +42,30 @@ internal sealed class WarehouseTransferRepository(InventoryWarehouseDbContext db
     public async Task<WarehouseTransfer> CompleteAsync(Guid id, DateTimeOffset completedAtUtc, CancellationToken ct)
     {
         await using var transaction = await dbContext.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
-        WarehouseTransfer transfer = await dbContext.WarehouseTransfers.Include(x => x.Items)
-            .SingleOrDefaultAsync(x => x.Id == id, ct) ?? throw new NotFoundException("Warehouse transfer was not found.");
+        WarehouseTransfer transfer = await dbContext.FindWarehouseTransferForUpdateAsync(id, ct)
+            ?? throw new NotFoundException("Warehouse transfer was not found.");
         if (transfer.Status == WarehouseTransferStatus.Completed)
             throw new ConflictException("Warehouse transfer is already completed.");
         await EnsurePositionAsync(transfer.SourceWarehouseId, transfer.SourceWarehouseLocationId, "Source", ct);
         await EnsurePositionAsync(transfer.DestinationWarehouseId, transfer.DestinationWarehouseLocationId, "Destination", ct);
 
+        var lockedBalances = new Dictionary<(Guid ProductId, Guid WarehouseId, Guid LocationId), InventoryBalance?>();
+        var balanceKeys = transfer.Items
+            .SelectMany(item => new[]
+            {
+                (ProductId: item.ProductId, WarehouseId: transfer.SourceWarehouseId, LocationId: transfer.SourceWarehouseLocationId),
+                (ProductId: item.ProductId, WarehouseId: transfer.DestinationWarehouseId, LocationId: transfer.DestinationWarehouseLocationId)
+            })
+            .Distinct()
+            .OrderBy(x => x.ProductId).ThenBy(x => x.WarehouseId).ThenBy(x => x.LocationId);
+        foreach (var key in balanceKeys)
+            lockedBalances[key] = await FindBalanceForUpdateAsync(key.ProductId, key.WarehouseId, key.LocationId, ct);
+
         var sourceBalances = new Dictionary<Guid, InventoryBalance>();
-        foreach (WarehouseTransferItem item in transfer.Items)
+        foreach (WarehouseTransferItem item in transfer.Items.OrderBy(x => x.ProductId))
         {
-            InventoryBalance? balance = await FindBalanceAsync(item.ProductId, transfer.SourceWarehouseId,
-                transfer.SourceWarehouseLocationId, ct);
+            InventoryBalance? balance = lockedBalances[(item.ProductId, transfer.SourceWarehouseId,
+                transfer.SourceWarehouseLocationId)];
             if (balance is null)
                 throw new ConflictException($"No source inventory balance exists for product '{item.ProductId}'.");
             if (item.Quantity > balance.AvailableQuantity)
@@ -62,12 +74,12 @@ internal sealed class WarehouseTransferRepository(InventoryWarehouseDbContext db
         }
 
         DateTimeOffset timestamp = completedAtUtc.ToUniversalTime();
-        foreach (WarehouseTransferItem item in transfer.Items)
+        foreach (WarehouseTransferItem item in transfer.Items.OrderBy(x => x.ProductId))
         {
             InventoryBalance source = sourceBalances[item.ProductId];
             source.Issue(item.Quantity);
-            InventoryBalance? destination = await FindBalanceAsync(item.ProductId, transfer.DestinationWarehouseId,
-                transfer.DestinationWarehouseLocationId, ct);
+            InventoryBalance? destination = lockedBalances[(item.ProductId, transfer.DestinationWarehouseId,
+                transfer.DestinationWarehouseLocationId)];
             if (destination is null)
             {
                 destination = new InventoryBalance(item.ProductId, transfer.DestinationWarehouseId,
@@ -109,8 +121,11 @@ internal sealed class WarehouseTransferRepository(InventoryWarehouseDbContext db
     }
 
     private Task<InventoryBalance?> FindBalanceAsync(Guid productId, Guid warehouseId, Guid locationId, CancellationToken ct) =>
-        dbContext.InventoryBalances.SingleOrDefaultAsync(x => x.ProductId == productId &&
+        dbContext.InventoryBalances.AsNoTracking().SingleOrDefaultAsync(x => x.ProductId == productId &&
             x.WarehouseId == warehouseId && x.WarehouseLocationId == locationId, ct);
+
+    private Task<InventoryBalance?> FindBalanceForUpdateAsync(Guid productId, Guid warehouseId, Guid locationId, CancellationToken ct) =>
+        dbContext.FindInventoryBalanceForUpdateAsync(productId, warehouseId, locationId, ct);
 
     private async Task EnsurePositionAsync(Guid warehouseId, Guid locationId, string role, CancellationToken ct)
     {

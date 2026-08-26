@@ -75,5 +75,5 @@ internal sealed class InventoryReservationRepository(InventoryWarehouseDbContext
         await dbContext.InventoryReservations.SingleOrDefaultAsync(x => x.Id == id, ct)
             ?? throw new NotFoundException("Inventory reservation was not found.");
     private Task<InventoryBalance?> FindBalanceAsync(Guid productId, Guid warehouseId, Guid locationId, CancellationToken ct) =>
-        dbContext.InventoryBalances.SingleOrDefaultAsync(x => x.ProductId == productId && x.WarehouseId == warehouseId && x.WarehouseLocationId == locationId, ct);
+        dbContext.FindInventoryBalanceForUpdateAsync(productId, warehouseId, locationId, ct);
 }
