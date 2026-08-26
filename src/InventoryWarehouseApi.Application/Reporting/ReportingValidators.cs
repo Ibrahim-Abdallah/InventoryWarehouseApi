@@ -6,7 +6,7 @@ namespace InventoryWarehouseApi.Application.Reporting;
 internal static class ReportValidation
 {
     public static void Common<T>(AbstractValidator<T> v,string[] sorts) where T:ReportPageQuery
-    { v.RuleFor(x=>x.PageNumber).GreaterThan(0);v.RuleFor(x=>x.PageSize).InclusiveBetween(1,100);v.RuleFor(x=>x.SortBy).Must(x=>x is not null&&sorts.Contains(x,StringComparer.OrdinalIgnoreCase)).WithMessage("SortBy is invalid.");v.RuleFor(x=>x.SortDirection).Must(x=>x.Equals("asc",StringComparison.OrdinalIgnoreCase)||x.Equals("desc",StringComparison.OrdinalIgnoreCase)).WithMessage("SortDirection must be asc or desc."); }
+    { v.RuleFor(x=>x.PageNumber).GreaterThan(0);v.RuleFor(x=>x.PageSize).InclusiveBetween(1,100);v.RuleFor(x=>x.SortBy).Must(x=>x is not null&&sorts.Contains(x,StringComparer.OrdinalIgnoreCase)).WithMessage("SortBy is invalid.");v.RuleFor(x=>x.SortDirection).Must(x=>string.Equals(x,"asc",StringComparison.OrdinalIgnoreCase)||string.Equals(x,"desc",StringComparison.OrdinalIgnoreCase)).WithMessage("SortDirection must be asc or desc."); }
     public static void Dates<T>(AbstractValidator<T> v,Func<T,DateTimeOffset?> from,Func<T,DateTimeOffset?> to,Func<T,Guid?> warehouse,Func<T,Guid?> location)
     { v.RuleFor(x=>x).Must(x=>!from(x).HasValue||!to(x).HasValue||from(x)<to(x)).WithMessage("FromUtc must be earlier than ToUtc.");v.RuleFor(x=>x).Must(x=>!location(x).HasValue||warehouse(x).HasValue).WithMessage("WarehouseId is required when WarehouseLocationId is supplied."); }
 }

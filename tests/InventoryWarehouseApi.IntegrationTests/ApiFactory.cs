@@ -15,8 +15,13 @@ namespace InventoryWarehouseApi.IntegrationTests;
 public class ApiFactory : WebApplicationFactory<Program>
 {
     private readonly bool useRealAuthentication;
+    private readonly Action<IServiceCollection>? configureTestServices;
     public ApiFactory() : this(false) { }
-    internal ApiFactory(bool useRealAuthentication) => this.useRealAuthentication = useRealAuthentication;
+    internal ApiFactory(bool useRealAuthentication, Action<IServiceCollection>? configureTestServices = null)
+    {
+        this.useRealAuthentication = useRealAuthentication;
+        this.configureTestServices = configureTestServices;
+    }
     private readonly string _connectionString = $"Data Source=reports-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
     private SqliteConnection? _connection;
 
@@ -43,6 +48,7 @@ public class ApiFactory : WebApplicationFactory<Program>
                 services.AddAuthentication(options => { options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName; options.DefaultChallengeScheme = TestAuthHandler.SchemeName; })
                     .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
             }
+            configureTestServices?.Invoke(services);
             using IServiceScope scope = services.BuildServiceProvider().CreateScope();
             scope.ServiceProvider.GetRequiredService<InventoryWarehouseDbContext>().Database.EnsureCreated();
         });

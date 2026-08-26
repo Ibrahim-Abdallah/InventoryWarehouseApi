@@ -184,4 +184,10 @@ Date ranges are UTC-normalized, inclusive at `fromUtc`, and exclusive at `toUtc`
 
 SQL Server reporting is supported by the Phase 10 movement timeline/product/warehouse indexes and a warehouse-first balance index. Integration tests use a unique named shared in-memory SQLite database: one keep-alive connection preserves it while EF Core and fresh Dapper connections access the same relational state; only paging syntax differs by dialect.
 
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 11 — Testing & Reliability (Not Started).
+## Reliability and testing
+
+Unit tests cover domain and validator boundaries; integration tests exercise the HTTP, authorization, EF Core, Dapper, and Problem Details pipeline against an isolated shared in-memory SQLite database per test host. Critical stock, adjustment, transfer, and reservation tests assert balance invariants and ledger/audit atomicity, including exact-availability and deterministic competing-state revalidation. Real-JWT tests protect representative role policies, refresh-token revocation, inactive-user behavior, and the sequential last-active-Admin safeguard.
+
+Unexpected exceptions are logged and returned as sanitized 500 Problem Details without internal messages, while expected validation, not-found, unauthorized, and conflict failures keep their established response contract. Low-stock worker tests verify that an iteration failure is logged and a later iteration still runs. SQLite provides deterministic relational regression coverage, but it is not treated as proof of SQL Server locking behavior; simultaneous Stock Out, reservation, transfer completion, refresh rotation, and last-Admin mutations remain real SQL Server manual concurrency acceptance scenarios.
+
+See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 12 — Portfolio Polish & Documentation (Not Started).
