@@ -1,40 +1,34 @@
 # InventoryWarehouseApi
 
-A production-style ASP.NET Core Web API portfolio project for inventory and warehouse management. Phase 09 — Authentication & Authorization is complete.
+InventoryWarehouseApi is a production-style ASP.NET Core inventory and warehouse backend demonstrating transactional inventory consistency, multi-warehouse workflows, JWT authorization, EF Core and Dapper persistence, SQL Server concurrency control, background processing, and relational automated testing.
 
-## Implemented capabilities
+![.NET 10](https://img.shields.io/badge/.NET-10-512BD4) ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-Web_API-512BD4) ![SQL Server](https://img.shields.io/badge/SQL_Server-relational-CC2927) ![EF Core 10](https://img.shields.io/badge/EF_Core-10-512BD4) ![Dapper](https://img.shields.io/badge/Dapper-2.1.66-2C3E50)
 
-- Product master data CRUD with normalized, case-insensitive unique SKUs
-- Warehouse master data CRUD with normalized, case-insensitive unique codes
-- Warehouse-location CRUD with warehouse-scoped, normalized unique bin codes and dependency-safe deletes
-- Read-only product inventory summaries by warehouse and location, including zero-balance locations
-- Location balances as the single source of truth; warehouse totals are database-side aggregates
-- `AvailableQuantity = OnHandQuantity - ReservedQuantity`, with domain and database safeguards
-- Stock In and Stock Out commands backed by an immutable physical stock-movement ledger
-- Available-stock protection: Stock Out cannot consume quantities reserved for later workflows
-- Serializable, atomic InventoryBalance update and StockMovement insertion
-- Optional, normalized external reference pairs and newest-first paged movement history
-- Controlled Increase and Decrease corrections with immutable adjustment audit history
-- Required, normalized Reason with AdjustedBy derived from the authenticated user's canonical email
-- One linked AdjustmentIncrease or AdjustmentDecrease movement for every successful correction
-- Serializable, atomic balance, adjustment, and ledger persistence
-- Pending-to-Completed warehouse transfers between exact inventory positions, including same-warehouse/different-location moves
-- Multi-product transfer documents with atomic completion, available-stock revalidation, stock conservation, and full rollback
-- Linked TransferOut and TransferIn entries in the unified stock-movement ledger
-- Active-to-Released/Fulfilled inventory reservations for one exact product position
-- Serializable reservation allocation, release, and fulfillment with optional normalized external references
-- Fulfillment through one linked StockOut ledger entry without expanding the movement-type catalog
-- Database-backed pagination, SKU/code and name search, active-state filtering, and controlled sorting
-- FluentValidation request and query validation
-- Problem Details responses for validation (400), missing resources (404), conflicts (409), and unexpected errors (500)
-- Custom users, standard ASP.NET Core password hashing, JWT Bearer access tokens, and rotating SHA-256-hashed refresh tokens
-- Secure-by-default role and permission policies with Admin-only user management
-- EF Core 10 with SQL Server and migrations through `AddAuthenticationAuthorization`
-- ASP.NET Core OpenAPI and Scalar API Reference
-- Serilog request and structured console logging
-- Unit tests and HTTP-pipeline integration tests using isolated SQLite in-memory databases
+## Engineering highlights
 
-Physical stock changes use positive quantities; direction is represented by `StockIn` or `StockOut`. Available quantity remains derived and is never persisted. Stock Out returns 409 Conflict without changing the balance or ledger when available stock is insufficient.
+- Location balances with derived, never-persisted available quantity
+- Atomic, reservation-safe stock operations and multi-item transfers
+- Immutable physical movement ledger and adjustment audit trail
+- Serializable transactions with SQL Server writer-intent locking
+- Rotating, SHA-256-hashed refresh tokens and permission authorization
+- EF Core transactional persistence plus focused Dapper read models
+- Persistent low-stock monitoring with a failure-resilient worker
+- Sanitized Problem Details, structured logging, and relational tests
+
+## Capabilities
+
+Products, warehouses, locations, inventory balances, Stock In/Out, adjustments, transfers, reservations, low-stock thresholds and alerts, JWT authentication, Admin user management, and five read-heavy inventory reports.
+
+## Technology stack
+
+| Area | Technology |
+| --- | --- |
+| Runtime / API | .NET 10; ASP.NET Core Web API 10.0.11 |
+| Persistence | EF Core 10.0.11; Dapper 2.1.66; SQL Server; SQLite in-memory tests |
+| Security | JWT Bearer 10.0.11; `PasswordHasher`; hashed refresh tokens; role/permission policies |
+| Validation / errors / logs | FluentValidation 12.1.1; Problem Details; Serilog.AspNetCore 10.0.0 |
+| Documentation | ASP.NET Core OpenAPI 10.0.11; Scalar.AspNetCore 2.17.1 |
+| Testing | xUnit 2.9.3; WebApplicationFactory 10.0.11; EF Core SQLite 10.0.11 |
 
 ## Architecture
 
@@ -45,149 +39,132 @@ Application -> Domain
 Domain -> no project dependencies
 ```
 
-Source projects live under `src/`; unit and integration tests live under `tests/`.
+Transactional commands use application services and EF Core repositories. Read-heavy reports use an application abstraction implemented by Dapper with explicit SQL. This is a focused persistence split, not full CQRS. See [Architecture](docs/ARCHITECTURE.md).
 
-## API
+## Inventory consistency
 
-Products and warehouses expose matching controller-based endpoints:
+`AvailableQuantity = OnHandQuantity - ReservedQuantity`
 
-```text
-GET    /api/products
-GET    /api/products/{id}
-POST   /api/products
-PUT    /api/products/{id}
-DELETE /api/products/{id}
+On-hand is physical stock; reserved is allocated but not issued; available is usable for issue or allocation. Availability is derived and never persisted. Domain logic and database constraints enforce `OnHandQuantity >= 0`, `ReservedQuantity >= 0`, and `ReservedQuantity <= OnHandQuantity`.
 
-GET    /api/warehouses
-GET    /api/warehouses/{id}
-POST   /api/warehouses
-PUT    /api/warehouses/{id}
-DELETE /api/warehouses/{id}
+Stock Out and reservations are limited by availability. Release changes allocation only; fulfillment reduces on-hand and reserved quantities and creates one StockOut. Adjustment decreases preserve reserved stock. Transfer completion revalidates all source items and commits every balance, ledger, link, and status change atomically.
 
-GET    /api/warehouses/{warehouseId}/locations
-GET    /api/warehouses/{warehouseId}/locations/{locationId}
-POST   /api/warehouses/{warehouseId}/locations
-PUT    /api/warehouses/{warehouseId}/locations/{locationId}
-DELETE /api/warehouses/{warehouseId}/locations/{locationId}
+## Core workflows
 
-GET /api/inventory/products/{productId}/warehouses/{warehouseId}
-GET /api/inventory/products/{productId}/warehouses/{warehouseId}/locations
-GET /api/inventory/products/{productId}/warehouses/{warehouseId}/locations/{locationId}
-POST /api/inventory/products/{productId}/warehouses/{warehouseId}/locations/{locationId}/stock-in
-POST /api/inventory/products/{productId}/warehouses/{warehouseId}/locations/{locationId}/stock-out
-GET  /api/inventory/products/{productId}/warehouses/{warehouseId}/locations/{locationId}/movements
-POST /api/inventory/products/{productId}/warehouses/{warehouseId}/locations/{locationId}/adjustments/increase
-POST /api/inventory/products/{productId}/warehouses/{warehouseId}/locations/{locationId}/adjustments/decrease
-GET  /api/inventory/products/{productId}/warehouses/{warehouseId}/locations/{locationId}/adjustments
+- **Stock In / Out:** changes physical stock and appends an immutable ledger entry.
+- **Adjustments:** require a reason, record the authenticated user, and link an audit record to a movement.
+- **Transfers:** `Pending -> Completed`; creation does not reserve stock, completion revalidates and writes paired TransferOut/TransferIn movements atomically.
+- **Reservations:** `Active -> Released` or `Active -> Fulfilled`; release has no movement, fulfillment creates one StockOut, and no partial lifecycle exists.
+- **Low stock:** one threshold per product/warehouse/location; `AvailableQuantity <= ThresholdQuantity` is low and missing balances count as zero. Persistent alerts are separate from the read-only Dapper report.
 
-POST /api/warehouse-transfers
-POST /api/warehouse-transfers/{id}/complete
-GET  /api/warehouse-transfers/{id}
-GET  /api/warehouse-transfers
+## API overview
 
-POST /api/inventory-reservations
-POST /api/inventory-reservations/{id}/release
-POST /api/inventory-reservations/{id}/fulfill
-GET  /api/inventory-reservations/{id}
-GET  /api/inventory-reservations
-```
+| Area | Method | Route | Permission / purpose |
+| --- | --- | --- | --- |
+| Health | GET | `/health` | Anonymous |
+| Authentication | POST / GET | `/api/auth/login`, `/refresh`, `/logout`, `/me` | First three anonymous; `/me` authenticated |
+| User administration | POST / GET / PUT | `/api/users`, `/{id}`, `/{id}/role`, `/{id}/status` | Admin only |
+| Products | GET / POST / PUT / DELETE | `/api/products`, `/{id}` | Catalog Read / Manage |
+| Warehouses | GET / POST / PUT / DELETE | `/api/warehouses`, `/{id}` | Catalog Read / Manage |
+| Locations | GET / POST / PUT / DELETE | `/api/warehouses/{warehouseId}/locations`, `/{locationId}` | Catalog Read / Manage |
+| Inventory | GET / POST | `/api/inventory/products/{productId}/warehouses/{warehouseId}` plus location, stock and movement suffixes | Inventory Read / Operate |
+| Adjustments | POST / GET | inventory location `/adjustments/increase`, `/decrease`, `/adjustments` | Inventory Adjust / Read |
+| Transfers | POST / GET | `/api/warehouse-transfers`, `/{id}`, `/{id}/complete` | Inventory Operate / Read |
+| Reservations | POST / GET | `/api/inventory-reservations`, `/{id}`, `/{id}/release`, `/{id}/fulfill` | Inventory Operate / Read |
+| Low stock | PUT / GET | `/api/low-stock-thresholds...`, `/api/low-stock`, `/api/low-stock-alerts` | Low Stock Manage / Inventory Read |
+| Reports | GET | `/api/reports/inventory-summary`, `/stock-movements`, `/warehouses/{warehouseId}/inventory`, `/low-stock`, `/products/{productId}/stock-history` | Inventory Read |
 
-Stock command bodies contain a positive `quantity` and may include `referenceType` and `referenceId`; reference fields must be supplied together. Movement history uses `pageNumber` and `pageSize` (maximum 100), is scoped to the exact product/warehouse/location position, and returns newest records first.
+See [API examples](docs/API_EXAMPLES.md) and Development Scalar for the complete generated operation list.
 
-Adjustment command bodies require only a positive `quantity` and `reason`. `AdjustedBy` is always the authenticated user's canonical email; a caller-supplied JSON field is ignored and never trusted. Increase creates a zero-reserved balance when none exists. Decrease is limited by `AvailableQuantity`, preserving reserved inventory, and returns 409 without writes when unavailable. Every successful adjustment creates one immutable audit record and one linked movement.
+## Authorization matrix
 
-Warehouse transfers move up to 100 distinct products from one exact warehouse/location position to another. Same-warehouse transfers are supported when the locations differ. Creation validates current source availability and persists a `Pending` document, but it does not reserve stock, change balances, or create movements. Completion revalidates current `AvailableQuantity` inside one Serializable transaction, issues only unreserved source stock, receives it at the destination, and records paired `TransferOut`/`TransferIn` movements with one shared timestamp and transfer reference. Any failing item rolls back every balance, movement, link, and status change, preserving total on-hand stock. Transfer detail and deterministic newest-first paged history are available through the transfer endpoints. Cancellation, in-transit states, and partial completion are not part of this lifecycle.
+| Capability | Admin | InventoryManager | WarehouseOperator | Viewer |
+| --- | :---: | :---: | :---: | :---: |
+| Catalog Read | ✓ | ✓ | ✓ | ✓ |
+| Catalog Manage | ✓ | ✓ | — | — |
+| Inventory Read | ✓ | ✓ | ✓ | ✓ |
+| Inventory Operate | ✓ | ✓ | ✓ | — |
+| Inventory Adjust | ✓ | ✓ | — | — |
+| Low Stock Manage | ✓ | ✓ | — | — |
+| User Manage | ✓ | — | — | — |
 
-Inventory reservations have a deliberately small lifecycle: `Active -> Released` or `Active -> Fulfilled`. Creation increases `ReservedQuantity` only, leaving `OnHandQuantity` unchanged and creating no stock movement. It is limited by current `AvailableQuantity`; optional `referenceType`/`referenceId` values are trimmed, length-limited, and must be supplied together. Release frees the full reserved quantity without a physical ledger entry. Fulfillment consumes the full quantity from both on-hand and reserved stock, so availability remains stable relative to immediately before fulfillment, and creates exactly one linked `StockOut` movement using the reservation ID as its reference. Partial release, partial fulfillment, amendment, reassignment, and expiration are not supported in Phase 07.
+## Authentication and security
 
-Reservation create, release, and fulfillment each execute atomically in one Serializable transaction. Existing Stock Out and Warehouse Transfer completion continue to use `AvailableQuantity`, so active reservations protect their allocated stock. Pending warehouse transfers still do **not** reserve inventory; inventory reservations are the explicit allocation mechanism.
+Login returns a short-lived JWT (15 minutes by default) and rotating refresh token (seven days). Only SHA-256 refresh-token hashes are persisted. Logout revokes its token. Status or role changes revoke active refresh tokens, while access tokens remain valid to normal expiry. The last active Admin cannot be demoted or deactivated.
 
-Collection queries accept `pageNumber` (default 1), `pageSize` (default 20, maximum 100), `search`, `isActive`, `sortBy`, and `sortDirection` (`asc` or `desc`). Products allow `sku`, `name`, `createdAtUtc`, and `updatedAtUtc` sorting; warehouses allow `code`, `name`, `createdAtUtc`, and `updatedAtUtc`. The deterministic default is newest creation time first.
+Production secrets must stay outside source. The checked-in signing key is Development-only. Supply production connection strings, signing keys, and bootstrap passwords with environment configuration or a secret provider.
 
-## Local database setup
+## Quick start
 
-Prerequisites are .NET SDK 10.0.400 (or a compatible .NET 10 SDK) and SQL Server LocalDB. The development connection in `src/InventoryWarehouseApi.Api/appsettings.json` uses Windows authentication and the `InventoryWarehouseApi` LocalDB database. Override `ConnectionStrings:DefaultConnection` through user secrets or environment configuration for another SQL Server; do not store credentials in source.
-
-Restore the repository-local EF tool and apply the migration:
+Prerequisites: a compatible .NET 10 SDK and SQL Server LocalDB or SQL Server.
 
 ```powershell
+git clone <repository-url>
+cd InventoryWarehouseApi
+dotnet restore
 dotnet tool restore
 dotnet ef database update --project src/InventoryWarehouseApi.Infrastructure --startup-project src/InventoryWarehouseApi.Api --context InventoryWarehouseDbContext
-```
-
-The application does not automatically create, recreate, or migrate the normal database at startup.
-
-## Run locally
-
-```powershell
-dotnet restore
 dotnet run --project src/InventoryWarehouseApi.Api
 ```
 
-In Development, Scalar is available at `/scalar/v1`, OpenAPI at `/openapi/v1.json`, and the health endpoint at `GET /health`.
-
-## Authentication and authorization
-
-The API is secure by default. `POST /api/auth/login`, `/api/auth/refresh`, `/api/auth/logout`, Development OpenAPI/Scalar, and `/health` are anonymous; business endpoints require a Bearer access token. Access tokens use HMAC-SHA256, default to 15 minutes, and contain `sub`, email, display name, role, `jti`, and permission claims. Refresh tokens default to seven days, rotate atomically, and only their SHA-256 hashes are persisted. Logout is idempotent and revokes the supplied refresh token.
-
-Roles map to permissions as follows: Admin has all permissions; InventoryManager has catalog/inventory operations, adjustments, and low-stock management; WarehouseOperator has catalog read, inventory read, and inventory operations; Viewer has catalog and inventory read only. User creation, listing, role changes, and activation are Admin-only. Deactivation and role changes revoke active refresh tokens; existing access tokens remain valid until their short expiry. The last active Admin cannot be deactivated or demoted.
-
-Authenticate by posting `{ "email": "...", "password": "..." }` to `/api/auth/login`, rotate with `{ "refreshToken": "..." }` at `/api/auth/refresh`, and revoke at `/api/auth/logout`. In Scalar, enter the returned access token as the Bearer credential. Development admin bootstrap is disabled by default; enable `Authentication:DevelopmentAdmin:Enabled` and provide its email, display name, and password through user secrets or environment variables. It is idempotent and Development-only.
-
-`appsettings.Development.json` contains an explicitly development-only signing key. **It MUST NOT be used in production.** Configure `Authentication__Jwt__Issuer`, `Authentication__Jwt__Audience`, and `Authentication__Jwt__SigningKey` through environment variables, secret management, or another external provider. Never store a production signing key or bootstrap password in source control.
-
-## Build and test
+Example external configuration:
 
 ```powershell
-dotnet restore
-dotnet build
-dotnet test
+$env:ConnectionStrings__DefaultConnection = '<sql-server-connection-string>'
+$env:Authentication__Jwt__Issuer = 'InventoryWarehouseApi'
+$env:Authentication__Jwt__Audience = 'InventoryWarehouseApi.Client'
+$env:Authentication__Jwt__SigningKey = '<at-least-32-byte-secret-signing-key>'
+$env:Authentication__DevelopmentAdmin__Enabled = 'true'
+$env:Authentication__DevelopmentAdmin__Email = 'admin@example.local'
+$env:Authentication__DevelopmentAdmin__DisplayName = 'Development Admin'
+$env:Authentication__DevelopmentAdmin__Password = '<choose-a-strong-development-password>'
 ```
 
-Integration tests replace SQL Server with a kept-open SQLite in-memory connection and create isolated relational schemas; they never use or modify the developer database.
+The Admin bootstrap is Development-only, disabled by default, idempotent, and does not reset an existing password. The application does not automatically apply migrations. The HTTPS development profile uses `https://localhost:7140` (also HTTP `5065`); Scalar is `/scalar/v1`, OpenAPI `/openapi/v1.json`, and health `/health`.
 
-Tests cover domain invariants, validation, relational constraints, HTTP behavior, atomic stock operations, adjustments, transfers, reservations, and low-stock monitoring.
+## Database and concurrency
 
-## Low-stock monitoring
+SQL Server is the development/production provider. Nine EF Core migrations exist through `AddReportingIndexes`; reporting indexes support movement timelines and warehouse inventory. Database constraints reinforce balance and movement invariants.
 
-Phase 08 configures one threshold per exact product, warehouse, and warehouse-location position through `PUT /api/low-stock-thresholds/products/{productId}/warehouses/{warehouseId}/locations/{locationId}`. Threshold administration supports exact lookup and paged filtering. Enabled thresholds are operationally low when `AvailableQuantity <= ThresholdQuantity`; the comparison is inclusive, and a configured position without an inventory balance participates as zero on-hand, reserved, and available stock.
+Critical mutations use Serializable transactions. SQL Server mutation reads use `WITH (UPDLOCK, HOLDLOCK)`, preventing shared-to-write conversion deadlocks in the tested inventory pattern: competitors wait and re-evaluate committed state, and normal business conflicts become 409. Transfer balances use deterministic key ordering and the transfer is locked before status evaluation. This is not universal deadlock elimination, distributed locking, a global retry framework, or blind deadlock-to-409 mapping.
 
-`GET /api/low-stock` returns active-master-data positions using deterministic, database-side pagination. Because availability is `OnHandQuantity - ReservedQuantity`, a reservation can make a position low even while physical on-hand stock remains. Stock Out and Stock In affect the query naturally through balances; monitoring itself never mutates inventory or creates a `StockMovement`.
+## Errors and observability
 
-Persistent alerts keep one active alert per threshold. Repeated scans update its observation rather than duplicate it; recovery, disabling a threshold, lowering a threshold below current availability, or deactivating master data resolves it. A later recurrence creates a new historical alert. `GET /api/low-stock-alerts` exposes paged active and resolved history.
+Problem Details cover validation (400), authentication (401), authorization (403), missing resources (404), business conflicts (409), and sanitized unexpected failures (500). Serilog provides request and structured application logs. The low-stock worker logs scans/failures and recovers on its next iteration; no external logging infrastructure is implied.
 
-The hosted worker runs immediately and sequentially, survives iteration failures, and uses a fresh dependency-injection scope per scan. `LowStockMonitoring:Enabled` controls execution; the default interval is 60 seconds and Development uses 10 seconds. Integration-test hosts disable automatic execution and invoke the monitoring service directly for deterministic coverage. Logs contain structured scan counts and failures.
+The generated OpenAPI document supplies concise operation summaries, business-focused descriptions, typed success responses, and applicable `application/problem+json` error contracts for Scalar.
 
-Phase 08 supplies operational queries and alerts; Phase 10 adds an independent, read-only Dapper report with identical low-stock semantics.
+## Testing
 
-## Dapper reporting
-
-Transactional persistence, writes, and operational inventory queries remain on EF Core. Read-heavy Phase 10 reports use Dapper 2.1.66 through a short-lived reporting connection per operation, intentionally demonstrating both persistence approaches without replacing the transactional model.
-
-All routes require the `InventoryRead` permission:
-
-* `GET /api/reports/inventory-summary`
-* `GET /api/reports/stock-movements`
-* `GET /api/reports/warehouses/{warehouseId}/inventory`
-* `GET /api/reports/low-stock`
-* `GET /api/reports/products/{productId}/stock-history`
-
-Paged reports default to `pageNumber=1&pageSize=20` and cap page size at 100. Filtering, aggregation, whitelisted sorting, deterministic tie-breaking, total count, and paging all execute in the database. Values are parameterized; only validated sort names and `asc`/`desc` directions select hard-coded SQL expressions. For example:
-
-```http
-GET /api/reports/inventory-summary?search=bolt&sortBy=available&sortDirection=desc
-GET /api/reports/stock-movements?warehouseId={id}&fromUtc=2026-01-01T00:00:00Z&toUtc=2026-02-01T00:00:00Z
-GET /api/reports/products/{productId}/stock-history?sortDirection=asc
+```powershell
+dotnet build InventoryWarehouseApi.slnx --configuration Release
+dotnet test tests/InventoryWarehouseApi.UnitTests --configuration Release
+dotnet test tests/InventoryWarehouseApi.IntegrationTests --configuration Release
+dotnet test InventoryWarehouseApi.slnx --configuration Release
 ```
 
-Date ranges are UTC-normalized, inclusive at `fromUtc`, and exclusive at `toUtc`. Available quantity is always `OnHandQuantity - ReservedQuantity`. The low-stock report includes enabled, active positions when available quantity is less than or equal to the threshold, including a missing balance as zero, and never changes alerts. Product history signs StockIn, AdjustmentIncrease, and TransferIn positively and StockOut, AdjustmentDecrease, and TransferOut negatively.
+Verified baseline: **95 unit + 76 integration = 171 total; 0 failed; 0 skipped**. Integration tests use `WebApplicationFactory` and an isolated shared in-memory SQLite database per host, exercising relational constraints and EF Core/Dapper against the same database where needed.
 
-SQL Server reporting is supported by the Phase 10 movement timeline/product/warehouse indexes and a warehouse-first balance index. Integration tests use a unique named shared in-memory SQLite database: one keep-alive connection preserves it while EF Core and fresh Dapper connections access the same relational state; only paging syntax differs by dialect.
+SQLite does not prove SQL Server locks. Real SQL Server acceptance separately covered competing Stock Out, reservations, same-transfer completion, refresh rotation, and last-active-Admin mutation.
 
-## Reliability and testing
+## Project structure
 
-Unit tests cover domain and validator boundaries; integration tests exercise the HTTP, authorization, EF Core, Dapper, and Problem Details pipeline against an isolated shared in-memory SQLite database per test host. Critical stock, adjustment, transfer, and reservation tests assert balance invariants and ledger/audit atomicity, including exact-availability and deterministic competing-state revalidation. Real-JWT tests protect representative role policies, refresh-token revocation, inactive-user behavior, and the sequential last-active-Admin safeguard.
+```text
+src/
+  InventoryWarehouseApi.Api
+  InventoryWarehouseApi.Application
+  InventoryWarehouseApi.Domain
+  InventoryWarehouseApi.Infrastructure
+tests/
+  InventoryWarehouseApi.UnitTests
+  InventoryWarehouseApi.IntegrationTests
+docs/
+  ARCHITECTURE.md
+  API_EXAMPLES.md
+```
 
-Unexpected exceptions are logged and returned as sanitized 500 Problem Details without internal messages, while expected validation, not-found, unauthorized, and conflict failures keep their established response contract. Low-stock worker tests verify that an iteration failure is logged and a later iteration still runs. SQLite provides deterministic relational regression coverage, but it is not treated as proof of SQL Server locking behavior; simultaneous Stock Out, reservation, transfer completion, refresh rotation, and last-Admin mutations remain real SQL Server manual concurrency acceptance scenarios.
+API owns HTTP composition; Application owns use cases and boundaries; Domain owns entities and invariants; Infrastructure owns EF Core, Dapper, SQL Server, and security persistence.
 
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 12 — Portfolio Polish & Documentation (Not Started).
+## Scope boundary
+
+This backend intentionally excludes full ERP, accounting/invoicing, purchasing, sales orders, shipping, forecasting/ML, microservices, Kubernetes, production cloud infrastructure, and a frontend. The historical roadmap remains in [PROJECT_PLAN.md](PROJECT_PLAN.md).

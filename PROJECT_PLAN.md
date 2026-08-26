@@ -591,6 +591,10 @@ Critical inventory workflows have automated regression protection.
 
 ## Phase 12 — Portfolio Polish & Documentation
 
+**Status: Completed**
+
+The repository now presents the completed backend through a professional README, architecture and API example documentation, verified setup/security guidance, final project status, and an automated quality baseline.
+
 ### Objectives
 
 Prepare the repository for clients and portfolio presentation.
@@ -702,10 +706,10 @@ Throughout development:
 | 09 — Authentication & Authorization           | Completed   |
 | 10 — Inventory Queries & Dapper Reporting     | Completed   |
 | 11 — Testing & Reliability                    | Completed   |
-| 12 — Portfolio Polish & Documentation         | Not Started |
+| 12 — Portfolio Polish & Documentation         | Completed   |
 
 ---
 
-## Current Phase
+## Project Status
 
-**Phase 12 — Portfolio Polish & Documentation (Not Started)**
+**All planned phases completed.**
