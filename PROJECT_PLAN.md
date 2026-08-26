@@ -535,6 +535,8 @@ Sensitive inventory operations are available only to authorized users.
 
 ## Phase 10 — Inventory Queries & Dapper Reporting
 
+**Status: Completed.** A dedicated Dapper reporting layer now supplies inventory summary, cross-product movements, warehouse inventory, low-stock reporting, and signed product stock history with UTC date filtering, database-side pagination/sorting, focused reporting indexes, and relational automated coverage.
+
 ### Objectives
 
 Demonstrate optimized reporting and query-heavy data access.
@@ -694,7 +696,7 @@ Throughout development:
 | 07 — Inventory Reservations                   | Completed   |
 | 08 — Low Stock Monitoring & Background Jobs   | Completed   |
 | 09 — Authentication & Authorization           | Completed   |
-| 10 — Inventory Queries & Dapper Reporting     | Not Started |
+| 10 — Inventory Queries & Dapper Reporting     | Completed   |
 | 11 — Testing & Reliability                    | Not Started |
 | 12 — Portfolio Polish & Documentation         | Not Started |
 
@@ -702,4 +704,4 @@ Throughout development:
 
 ## Current Phase
 
-**Phase 10 — Inventory Queries & Dapper Reporting (Not Started)**
+**Phase 11 — Testing & Reliability (Not Started)**

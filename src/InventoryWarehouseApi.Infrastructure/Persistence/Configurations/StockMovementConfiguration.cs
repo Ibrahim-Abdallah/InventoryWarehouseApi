@@ -26,5 +26,8 @@ internal sealed class StockMovementConfiguration : IEntityTypeConfiguration<Stoc
         builder.HasIndex(x => new { x.ProductId, x.WarehouseId, x.WarehouseLocationId, x.OccurredAtUtc, x.Id })
             .IsDescending(false, false, false, true, true)
             .HasDatabaseName("IX_StockMovements_Position_OccurredAtUtc");
+        builder.HasIndex(x=>new{x.OccurredAtUtc,x.Id}).IsDescending(true,true).HasDatabaseName("IX_StockMovements_OccurredAtUtc_Id");
+        builder.HasIndex(x=>new{x.ProductId,x.OccurredAtUtc,x.Id}).IsDescending(false,true,true).HasDatabaseName("IX_StockMovements_ProductId_OccurredAtUtc_Id");
+        builder.HasIndex(x=>new{x.WarehouseId,x.OccurredAtUtc,x.Id}).IsDescending(false,true,true).HasDatabaseName("IX_StockMovements_WarehouseId_OccurredAtUtc_Id");
     }
 }

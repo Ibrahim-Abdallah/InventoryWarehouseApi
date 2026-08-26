@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using InventoryWarehouseApi.Application.Authentication;
 using InventoryWarehouseApi.Infrastructure.Security;
+using InventoryWarehouseApi.Application.Reporting;
+using InventoryWarehouseApi.Infrastructure.Reporting;
 
 namespace InventoryWarehouseApi.Infrastructure;
 
@@ -34,6 +36,8 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IPasswordHashService, PasswordHashService>();
         services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
+        services.AddSingleton<IReportingConnectionFactory>(new SqlServerReportingConnectionFactory(connectionString));
+        services.AddScoped<IInventoryReportingRepository, DapperInventoryReportingRepository>();
         return services;
     }
 }
