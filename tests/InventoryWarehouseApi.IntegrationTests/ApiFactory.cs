@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.AspNetCore.Authentication;
+using InventoryWarehouseApi.Infrastructure.Reporting;
+using System.Data.Common;
 
 namespace InventoryWarehouseApi.IntegrationTests;
 
@@ -15,7 +17,8 @@ public class ApiFactory : WebApplicationFactory<Program>
     private readonly bool useRealAuthentication;
     public ApiFactory() : this(false) { }
     internal ApiFactory(bool useRealAuthentication) => this.useRealAuthentication = useRealAuthentication;
-    private readonly SqliteConnection _connection = new("Data Source=:memory:");
+    private readonly string _connectionString = $"Data Source=reports-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
+    private SqliteConnection? _connection;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -24,6 +27,7 @@ public class ApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Authentication:Jwt:Audience", "InventoryWarehouseApi.Tests.Client");
         builder.UseSetting("Authentication:Jwt:SigningKey", "TEST-ONLY-SIGNING-KEY-IS-AT-LEAST-THIRTY-TWO-BYTES-LONG");
         builder.UseSetting("Authentication:DevelopmentAdmin:Enabled", "false");
+        _connection = new SqliteConnection(_connectionString);
         _connection.Open();
         builder.UseEnvironment("Development");
         builder.ConfigureServices(services =>
@@ -31,7 +35,9 @@ public class ApiFactory : WebApplicationFactory<Program>
             services.RemoveAll<DbContextOptions<InventoryWarehouseDbContext>>();
             services.RemoveAll<DbContextOptions>();
             services.RemoveAll<IDbContextOptionsConfiguration<InventoryWarehouseDbContext>>();
-            services.AddDbContext<InventoryWarehouseDbContext>(options => options.UseSqlite(_connection));
+            services.AddDbContext<InventoryWarehouseDbContext>(options => options.UseSqlite(_connectionString));
+            services.RemoveAll<IReportingConnectionFactory>();
+            services.AddSingleton<IReportingConnectionFactory>(new SqliteReportingConnectionFactory(_connectionString));
             if (!useRealAuthentication)
             {
                 services.AddAuthentication(options => { options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName; options.DefaultChallengeScheme = TestAuthHandler.SchemeName; })
@@ -45,6 +51,12 @@ public class ApiFactory : WebApplicationFactory<Program>
     protected override void Dispose(bool disposing)
     {
         base.Dispose(disposing);
-        if (disposing) _connection.Dispose();
+        if (disposing) _connection?.Dispose();
     }
+}
+
+internal sealed class SqliteReportingConnectionFactory(string connectionString):IReportingConnectionFactory
+{
+    public ReportingDialect Dialect=>ReportingDialect.Sqlite;
+    public DbConnection CreateConnection()=>new SqliteConnection(connectionString);
 }

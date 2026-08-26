@@ -158,6 +158,30 @@ Persistent alerts keep one active alert per threshold. Repeated scans update its
 
 The hosted worker runs immediately and sequentially, survives iteration failures, and uses a fresh dependency-injection scope per scan. `LowStockMonitoring:Enabled` controls execution; the default interval is 60 seconds and Development uses 10 seconds. Integration-test hosts disable automatic execution and invoke the monitoring service directly for deterministic coverage. Logs contain structured scan counts and failures.
 
-Phase 08 supplies operational queries and alerts. Optimized Dapper low-stock reporting remains Phase 10.
+Phase 08 supplies operational queries and alerts; Phase 10 adds an independent, read-only Dapper report with identical low-stock semantics.
 
-See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 10 — Inventory Queries & Dapper Reporting (Not Started).
+## Dapper reporting
+
+Transactional persistence, writes, and operational inventory queries remain on EF Core. Read-heavy Phase 10 reports use Dapper 2.1.66 through a short-lived reporting connection per operation, intentionally demonstrating both persistence approaches without replacing the transactional model.
+
+All routes require the `InventoryRead` permission:
+
+* `GET /api/reports/inventory-summary`
+* `GET /api/reports/stock-movements`
+* `GET /api/reports/warehouses/{warehouseId}/inventory`
+* `GET /api/reports/low-stock`
+* `GET /api/reports/products/{productId}/stock-history`
+
+Paged reports default to `pageNumber=1&pageSize=20` and cap page size at 100. Filtering, aggregation, whitelisted sorting, deterministic tie-breaking, total count, and paging all execute in the database. Values are parameterized; only validated sort names and `asc`/`desc` directions select hard-coded SQL expressions. For example:
+
+```http
+GET /api/reports/inventory-summary?search=bolt&sortBy=available&sortDirection=desc
+GET /api/reports/stock-movements?warehouseId={id}&fromUtc=2026-01-01T00:00:00Z&toUtc=2026-02-01T00:00:00Z
+GET /api/reports/products/{productId}/stock-history?sortDirection=asc
+```
+
+Date ranges are UTC-normalized, inclusive at `fromUtc`, and exclusive at `toUtc`. Available quantity is always `OnHandQuantity - ReservedQuantity`. The low-stock report includes enabled, active positions when available quantity is less than or equal to the threshold, including a missing balance as zero, and never changes alerts. Product history signs StockIn, AdjustmentIncrease, and TransferIn positively and StockOut, AdjustmentDecrease, and TransferOut negatively.
+
+SQL Server reporting is supported by the Phase 10 movement timeline/product/warehouse indexes and a warehouse-first balance index. Integration tests use a unique named shared in-memory SQLite database: one keep-alive connection preserves it while EF Core and fresh Dapper connections access the same relational state; only paging syntax differs by dialect.
+
+See [PROJECT_PLAN.md](PROJECT_PLAN.md) for the phased roadmap. The next phase is Phase 11 — Testing & Reliability (Not Started).

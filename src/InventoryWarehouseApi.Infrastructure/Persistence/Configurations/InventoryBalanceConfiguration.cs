@@ -24,5 +24,6 @@ internal sealed class InventoryBalanceConfiguration : IEntityTypeConfiguration<I
             .HasForeignKey(x => new { x.WarehouseId, x.WarehouseLocationId })
             .HasPrincipalKey(x => new { x.WarehouseId, x.Id }).OnDelete(DeleteBehavior.Restrict);
         builder.HasIndex(x => new { x.ProductId, x.WarehouseId });
+        builder.HasIndex(x=>new{x.WarehouseId,x.ProductId,x.WarehouseLocationId}).HasDatabaseName("IX_InventoryBalances_WarehouseId_ProductId_WarehouseLocationId");
     }
 }
